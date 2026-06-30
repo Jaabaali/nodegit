@@ -22,7 +22,7 @@ NAN_METHOD(GitRevwalk::FastWalk)
   FastWalkWorker *worker = new FastWalkWorker(baton, callback, cleanupHandles);
   worker->Reference<GitRevwalk>("fastWalk", info.Holder());
 
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

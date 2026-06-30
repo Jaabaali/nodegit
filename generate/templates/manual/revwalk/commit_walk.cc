@@ -145,7 +145,7 @@ NAN_METHOD(GitRevwalk::CommitWalk) {
   CommitWalkWorker *worker = new CommitWalkWorker(baton, callback, cleanupHandles);
   worker->Reference<GitRevwalk>("commitWalk", info.Holder());
 
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

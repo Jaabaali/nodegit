@@ -8,6 +8,7 @@
 #include <uv.h>
 #include <v8.h>
 
+#include "nodegit.h"
 #include "async_worker.h"
 #include "cleanup_handle.h"
 #include "thread_pool.h"

@@ -106,4 +106,24 @@ describe("Patch", function() {
         assert.strictEqual(patch.size(0, 0, 0), 0);
       });
   });
+
+  it("can retrieve the patch contents with toBuf", function() {
+    return this.diff[0].patches()
+      .then(function(patches) {
+        var patch = patches[0];
+        var buf = patch.toBuf();
+        assert.ok(buf.includes("diff --git a/README.md b/README.md"));
+      });
+  });
+
+  it("can retrieve the GitPatch contents with toBuf", function() {
+    var diff = this.diff[0];
+    return NodeGit.Patch.fromDiff(diff, 0)
+      .then(function(patch) {
+        return patch.toBuf();
+      })
+      .then(function(buf) {
+        assert.ok(buf.toString().includes("diff --git a/README.md b/README.md"));
+      });
+  });
 });

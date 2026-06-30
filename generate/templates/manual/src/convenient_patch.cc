@@ -18,6 +18,9 @@ using namespace node;
 void PatchDataFree(PatchData *patch) {
   free((void *)patch->old_file.path);
   free((void *)patch->new_file.path);
+  if (patch->content) {
+    free((void *)patch->content);
+  }
   while(!patch->hunks->empty()) {
     HunkData *hunk = patch->hunks->back();
     patch->hunks->pop_back();
@@ -54,6 +57,25 @@ PatchData *createFromRaw(git_patch *raw) {
   patch->numHunks = git_patch_num_hunks(raw);
   patch->hunks = new std::vector<HunkData *>;
   patch->hunks->reserve(patch->numHunks);
+
+  git_buf buf = GIT_BUF_INIT;
+  int buf_result = git_patch_to_buf(&buf, raw);
+  if (buf_result == 0) {
+    patch->content_len = buf.size;
+    patch->content = (char *)malloc(buf.size + 1);
+    if (patch->content) {
+      if (buf.size > 0) {
+        memcpy(patch->content, buf.ptr, buf.size);
+      }
+      patch->content[buf.size] = '\0';
+    } else {
+      patch->content_len = 0;
+    }
+  } else {
+    patch->content = NULL;
+    patch->content_len = 0;
+  }
+  git_buf_dispose(&buf);
 
   for (unsigned int i = 0; i < patch->numHunks; ++i) {
     HunkData *hunkData = new HunkData();
@@ -142,6 +164,7 @@ void ConvenientPatch::InitializeComponent(Local<v8::Object> target, nodegit::Con
   Nan::SetPrototypeMethod(tpl, "hunks", Hunks, nodegitExternal);
   Nan::SetPrototypeMethod(tpl, "lineStats", LineStats, nodegitExternal);
   Nan::SetPrototypeMethod(tpl, "size", Size, nodegitExternal);
+  Nan::SetPrototypeMethod(tpl, "toBuf", ToBuf, nodegitExternal);
 
   Nan::SetPrototypeMethod(tpl, "oldFile", OldFile, nodegitExternal);
   Nan::SetPrototypeMethod(tpl, "newFile", NewFile, nodegitExternal);
@@ -169,7 +192,7 @@ NAN_METHOD(ConvenientPatch::JSNewFunction) {
        return Nan::ThrowError("A new ConvenientPatch cannot be instantiated.");
    }
 
-  ConvenientPatch* object = new ConvenientPatch(static_cast<PatchData *>(Local<External>::Cast(info[0])->Value()));
+  ConvenientPatch* object = new ConvenientPatch(static_cast<PatchData *>(nodegit::ExternalValue(Local<External>::Cast(info[0]))));
   object->Wrap(info.Holder());
 
   info.GetReturnValue().Set(info.Holder());
@@ -223,7 +246,7 @@ NAN_METHOD(ConvenientPatch::Hunks) {
 
   worker->Reference<ConvenientPatch>("patch", info.Holder());
 
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }
@@ -318,6 +341,19 @@ NAN_METHOD(ConvenientPatch::Size) {
   to = Nan::New<Number>(Nan::ObjectWrap::Unwrap<ConvenientPatch>(info.Holder())->GetNumHunks());
 
   info.GetReturnValue().Set(to);
+}
+
+NAN_METHOD(ConvenientPatch::ToBuf) {
+  Nan::EscapableHandleScope scope;
+
+  PatchData *patch = Nan::ObjectWrap::Unwrap<ConvenientPatch>(info.Holder())->GetValue();
+  if (patch->content) {
+    return info.GetReturnValue().Set(
+      scope.Escape(Nan::New<v8::String>(patch->content, patch->content_len).ToLocalChecked())
+    );
+  }
+
+  return info.GetReturnValue().Set(scope.Escape(Nan::Null()));
 }
 
 NAN_METHOD(ConvenientPatch::OldFile) {

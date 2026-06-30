@@ -15,7 +15,7 @@ NAN_METHOD(GitRepository::GetSubmodules)
   std::map<std::string, std::shared_ptr<nodegit::CleanupHandle>> cleanupHandles;
   GetSubmodulesWorker *worker = new GetSubmodulesWorker(baton, callback, cleanupHandles);
   worker->Reference<GitRepository>("repo", info.Holder());
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

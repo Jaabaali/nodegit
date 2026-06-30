@@ -63,7 +63,7 @@ NAN_METHOD(ConvenientHunk::JSNewFunction) {
        return Nan::ThrowError("A new ConvenientHunk cannot be instantiated.");
    }
 
-  ConvenientHunk* object = new ConvenientHunk(static_cast<HunkData *>(Local<External>::Cast(info[0])->Value()));
+  ConvenientHunk* object = new ConvenientHunk(static_cast<HunkData *>(nodegit::ExternalValue(Local<External>::Cast(info[0]))));
   object->Wrap(info.Holder());
 
   info.GetReturnValue().Set(info.Holder());
@@ -107,7 +107,7 @@ NAN_METHOD(ConvenientHunk::Lines) {
 
   worker->Reference<ConvenientHunk>("hunk", info.Holder());
 
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

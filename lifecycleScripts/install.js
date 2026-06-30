@@ -2,56 +2,35 @@ var buildFlags = require("../utils/buildFlags");
 var spawn = require("child_process").spawn;
 var path = require("path");
 
-const nodePreGypModulePath = require.resolve("@mapbox/node-pre-gyp");
-
 module.exports = function install() {
   console.log("[nodegit] Running install script");
 
-  var nodePreGyp = "node-pre-gyp";
-
-  if (process.platform === "win32") {
-    nodePreGyp += ".cmd";
+  // Try to use node-gyp-build to find local prebuilds
+  try {
+    require("node-gyp-build")(path.join(__dirname, ".."));
+    console.info("[nodegit] Found local prebuild, skipping build from source.");
+    return Promise.resolve();
+  } catch (e) {
+    console.info("[nodegit] No local prebuild found, building from source.");
   }
 
-  var args = ["install"];
+  var args = ["rebuild"];
 
-  if (buildFlags.mustBuild) {
-    console.info(
-      "[nodegit] Pre-built download disabled, building from source."
-    );
-    args.push("--build-from-source");
+  if (buildFlags.debugBuild) {
+    console.info("[nodegit] Building debug version.");
+    args.push("--debug");
+  }
 
-    if (buildFlags.debugBuild) {
-      console.info("[nodegit] Building debug version.");
-      args.push("--debug");
-    }
-  }
-  else {
-    args.push("--fallback-to-build");
-  }
+  // Ensure we use the local node-gyp
+  const gypPath = path.resolve(__dirname, "..", "node_modules", ".bin", "node-gyp");
 
   return new Promise(function(resolve, reject) {
-    const gypPath = path.join(__dirname, "..", "node_modules", "node-gyp", "bin", "node-gyp.js");
-
-    const nodePreGypPath = path.resolve(path.dirname(nodePreGypModulePath), path.join("..", "bin", nodePreGyp));
-    console.log("node-pre-gyp path", nodePreGypPath);
-    var spawnedNodePreGyp = spawn(nodePreGypPath, args, {
-      env: {
-        ...process.env,
-        npm_config_node_gyp: gypPath
-      },
+    var spawnedNodeGyp = spawn(gypPath, args, {
+      stdio: "inherit",
       shell: process.platform === "win32"
     });
 
-    spawnedNodePreGyp.stdout.on("data", function(data) {
-      console.info(data.toString().trim());
-    });
-
-    spawnedNodePreGyp.stderr.on("data", function(data) {
-      console.error(data.toString().trim());
-    });
-
-    spawnedNodePreGyp.on("close", function(code) {
+    spawnedNodeGyp.on("close", function(code) {
       if (!code) {
         resolve();
       } else {

@@ -25,3 +25,4 @@ appveyor.yml
 *.md
 *.sln
 *.vcxproj
+.nyc_output/

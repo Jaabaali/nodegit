@@ -2936,7 +2936,13 @@
           "ignore": true
         },
         "git_patch_to_buf": {
-          "ignore": true
+          "isAsync": true,
+          "args": {
+            "out": {
+              "isReturn": true,
+              "shouldAlloc": true
+            }
+          }
         }
       }
     },

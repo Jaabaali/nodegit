@@ -406,6 +406,9 @@ export const getOpenSSLPackageName = () => {
 export const getOpenSSLPackagePath = () => path.join(import.meta.dirname, getOpenSSLPackageName());
 
 const getOpenSSLPackageUrl = () => {
+  if (!packageJson.binary || !packageJson.binary.host) {
+    return null;
+  }
   const hostUrl = new URL(packageJson.binary.host);
   hostUrl.pathname = getOpenSSLPackageName();
   return hostUrl.toString();

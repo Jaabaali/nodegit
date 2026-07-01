@@ -1,0 +1,53 @@
+name: Bump jabali prerelease
+
+on:
+  workflow_call:
+
+jobs:
+  bump:
+    name: Bump jabali prerelease
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump package version
+        id: bump
+        run: |
+          set -e
+          VERSION="$(npm version prerelease --preid=jabali --no-git-tag-version)"
+          VERSION="${VERSION#v}"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/v${VERSION}" >/dev/null; then
+            echo "Tag v${VERSION} already exists; skipping bump."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and tag version
+        if: steps.bump.outputs.skip != 'true'
+        run: |
+          git add package.json package-lock.json
+          git commit -m "chore: bump to v${{ steps.bump.outputs.version }}"
+          git tag "v${{ steps.bump.outputs.version }}"
+
+      - name: Push version bump
+        if: steps.bump.outputs.skip != 'true'
+        run: git push origin "HEAD:main" "v${{ steps.bump.outputs.version }}"

@@ -3,8 +3,6 @@ on:
     branches:
       - main
       - backport/*
-    tags:
-      - v*.*.*
   pull_request:
 
 name: Testing
@@ -56,11 +54,11 @@ jobs:
           node utils/retry npm test
 
       - name: Prebuild
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         run: npm run prebuild
 
       - name: Upload Prebuild Artifacts
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: prebuilds-linux-${{ matrix.node }}-x64
@@ -105,11 +103,11 @@ jobs:
           node utils/retry npm test
 
       - name: Prebuild
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         run: npm run prebuild
 
       - name: Upload Prebuild Artifacts
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: prebuilds-macos-${{ matrix.node }}-${{ matrix.arch }}
@@ -162,13 +160,13 @@ jobs:
       # but it's not, because the CI runner for windows doesn't wait for each step as listed here
       # and it treats each additional step past the first as an orphaned process.
       - name: Prebuild
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         env:
           npm_config_arch: ${{ matrix.arch }}
         run: npm run prebuild
 
       - name: Upload Prebuild Artifacts
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: prebuilds-windows-${{ matrix.node }}-${{ matrix.arch }}
@@ -177,7 +175,7 @@ jobs:
   publish:
     name: "Publish to GCP Artifact Registry"
     needs: [linux-tests, macos-tests, windows-tests]
-    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: "read"
@@ -224,15 +222,16 @@ jobs:
           echo "${REGISTRY_NO_PROTO}:_authToken=${{ steps.auth.outputs.access_token }}" >> .npmrc
           echo "${REGISTRY_NO_PROTO}:always-auth=true" >> .npmrc
 
-      # 3. Versioning (MUST happen before publish for snapshots)
-      - name: Set Snapshot Version
-        if: github.ref == 'refs/heads/main'
-        run: |
-          BASE_VERSION="$(node -p "require('./package.json').version.split('-')[0]")"
-          npm version "${BASE_VERSION}-jabali.${GITHUB_RUN_NUMBER}" --no-git-tag-version
-
-      # 4. Publish
+      # 3. Publish
       - name: Publish to GCP Artifact Registry
         run: npm publish --access public --tag jabali
         env:
           NODE_AUTH_TOKEN: ${{ steps.auth.outputs.access_token }}
+
+  bump-jabali-prerelease:
+    name: Bump jabali prerelease
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/bump-jabali-prerelease.yml

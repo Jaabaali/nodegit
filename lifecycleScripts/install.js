@@ -1,6 +1,7 @@
 var buildFlags = require("../utils/buildFlags");
 var spawn = require("child_process").spawn;
 var path = require("path");
+var prepareForBuild = require("./preinstall");
 
 module.exports = function install() {
   console.log("[nodegit] Running install script");
@@ -24,20 +25,26 @@ module.exports = function install() {
   // Ensure we use the local node-gyp
   const gypPath = path.resolve(__dirname, "..", "node_modules", ".bin", "node-gyp");
 
-  return new Promise(function(resolve, reject) {
-    var spawnedNodeGyp = spawn(gypPath, args, {
-      stdio: "inherit",
-      shell: process.platform === "win32"
-    });
+  return Promise.resolve()
+    .then(function() {
+      return prepareForBuild();
+    })
+    .then(function() {
+      return new Promise(function(resolve, reject) {
+        var spawnedNodeGyp = spawn(gypPath, args, {
+          stdio: "inherit",
+          shell: process.platform === "win32"
+        });
 
-    spawnedNodeGyp.on("close", function(code) {
-      if (!code) {
-        resolve();
-      } else {
-        reject(code);
-      }
-    });
-  })
+        spawnedNodeGyp.on("close", function(code) {
+          if (!code) {
+            resolve();
+          } else {
+            reject(code);
+          }
+        });
+      });
+    })
     .then(function() {
       console.info("[nodegit] Completed installation successfully.");
     });

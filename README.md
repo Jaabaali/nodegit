@@ -220,3 +220,18 @@ You will need to build locally before running the tests. See above.
 ```bash
 npm test
 ```
+
+## Maintained by ##
+Alex Aveillán [@AlexaXs](http://github.com/AlexaXs) with help from tons of
+[awesome contributors](https://github.com/nodegit/nodegit/contributors)!
+
+### Alumni Maintainers ###
+Ian Hattendorf [@ianhattendorf](http://github.com/ianhattendorf),
+John Alden [@zawata](http://github.com/zawata),
+Tyler Ang-Wanek [@twwanek](http://twitter.com/twwanek),
+Tim Branyen [@tbranyen](http://twitter.com/tbranyen),
+John Haley [@johnhaley81](http://twitter.com/johnhaley81),
+Max Korp [@maxkorp](http://twitter.com/MaximilianoKorp),
+Steve Smith [@orderedlist](https://twitter.com/orderedlist),
+Michael Robinson [@codeofinterest](http://twitter.com/codeofinterest), and
+Nick Kallen [@nk](http://twitter.com/nk)

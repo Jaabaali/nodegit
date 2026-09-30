@@ -6,13 +6,14 @@ var prepareForBuild = require("./preinstall");
 module.exports = function install() {
   console.log("[nodegit] Running install script");
 
-  // Try to use node-gyp-build to find local prebuilds
-  try {
-    require("node-gyp-build")(path.join(__dirname, ".."));
-    console.info("[nodegit] Found local prebuild, skipping build from source.");
-    return Promise.resolve();
-  } catch (e) {
-    console.info("[nodegit] No local prebuild found, building from source.");
+  if (!buildFlags.mustBuild) {
+    try {
+      require("node-gyp-build")(path.join(__dirname, ".."));
+      console.info("[nodegit] Found local prebuild, skipping build from source.");
+      return Promise.resolve();
+    } catch (e) {
+      console.info("[nodegit] No local prebuild found, building from source.");
+    }
   }
 
   var args = ["rebuild"];
@@ -22,8 +23,8 @@ module.exports = function install() {
     args.push("--debug");
   }
 
-  // Ensure we use the local node-gyp
-  const gypPath = path.resolve(__dirname, "..", "node_modules", ".bin", "node-gyp");
+  // Package managers may hoist node-gyp outside this package's node_modules.
+  const gypPath = require.resolve("node-gyp/bin/node-gyp.js");
 
   return Promise.resolve()
     .then(function() {
@@ -31,11 +32,11 @@ module.exports = function install() {
     })
     .then(function() {
       return new Promise(function(resolve, reject) {
-        var spawnedNodeGyp = spawn(gypPath, args, {
-          stdio: "inherit",
-          shell: process.platform === "win32"
+        var spawnedNodeGyp = spawn(process.execPath, [gypPath].concat(args), {
+          stdio: "inherit"
         });
 
+        spawnedNodeGyp.on("error", reject);
         spawnedNodeGyp.on("close", function(code) {
           if (!code) {
             resolve();
@@ -56,6 +57,6 @@ if (require.main === module) {
     .catch(function(e) {
       console.error("[nodegit] ERROR - Could not finish install");
       console.error("[nodegit] ERROR - finished with error code: " + e);
-      process.exit(e);
+      process.exit(typeof e === "number" ? e : 1);
     });
 }

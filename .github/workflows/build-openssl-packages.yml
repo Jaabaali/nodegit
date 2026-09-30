@@ -1,4 +1,4 @@
-name: Build and Publish OpenSSL Packages
+name: Build OpenSSL Packages
 
 on:
   workflow_dispatch:
@@ -27,10 +27,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --ignore-scripts
 
       - name: Build OpenSSL packages
         env:
@@ -39,10 +39,11 @@ jobs:
           OPENSSL_MACOS_DEPLOYMENT_TARGET: "11.0"
         run: node utils/acquireOpenSSL.mjs
 
-      - name: Push OpenSSL package to S3
-        env:
-          npm_config_arch: ${{ matrix.arch }}
-          node_pre_gyp_bucket: ${{ secrets.node_pre_gyp_bucket }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.node_pre_gyp_accessKeyId }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.node_pre_gyp_secretAccessKey }}
-        run: node utils/uploadOpenSSL.mjs
+      - name: Upload OpenSSL packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: openssl-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            utils/openssl-*.tar.gz
+            utils/openssl-*.tar.gz.sha256
+          if-no-files-found: error

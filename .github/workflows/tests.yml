@@ -20,6 +20,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y software-properties-common git build-essential clang libssl-dev libkrb5-dev libc++-dev wget zlib1g-dev
 
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Environment
         run: |
@@ -44,7 +46,7 @@ jobs:
           check-latest: true
 
       - name: Install
-        run: npm install
+        run: npm ci
 
       - name: Test
         run: |
@@ -52,6 +54,9 @@ jobs:
           eval `ssh-agent -s`
           ssh-add ~/.ssh_tests/id_rsa
           node utils/retry npm test
+
+      - name: Test packed installation
+        run: npm run test:package
 
       - name: Prebuild
         if: github.ref == 'refs/heads/main'
@@ -74,6 +79,8 @@ jobs:
     runs-on: "macos-latest"
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Environment
         run: |
@@ -93,7 +100,7 @@ jobs:
           check-latest: true
 
       - name: Install
-        run: npm install
+        run: npm ci
 
       - name: Test
         run: |
@@ -101,6 +108,9 @@ jobs:
           eval `ssh-agent -s`
           ssh-add ~/.ssh_tests/id_rsa
           node utils/retry npm test
+
+      - name: Test packed installation
+        run: npm run test:package
 
       - name: Prebuild
         if: github.ref == 'refs/heads/main'
@@ -131,6 +141,8 @@ jobs:
           git config --global user.email johndoe@example.com
 
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -141,7 +153,7 @@ jobs:
       - name: Install
         env:
           npm_config_arch: ${{ matrix.arch }}
-        run: npm install
+        run: npm ci
 
       - name: Test
         # need arm64 runners or an emulator to run tests
@@ -159,6 +171,10 @@ jobs:
       # You're probably wondering why this isn't a single `run: |` step, it certainly is for *nix,
       # but it's not, because the CI runner for windows doesn't wait for each step as listed here
       # and it treats each additional step past the first as an orphaned process.
+      - name: Test packed installation
+        if: matrix.arch != 'arm64'
+        run: npm run test:package
+
       - name: Prebuild
         if: github.ref == 'refs/heads/main'
         env:
@@ -171,67 +187,3 @@ jobs:
         with:
           name: prebuilds-windows-${{ matrix.node }}-${{ matrix.arch }}
           path: prebuilds/
-
-  publish:
-    name: "Publish to GCP Artifact Registry"
-    needs: [linux-tests, macos-tests, windows-tests]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: "read"
-      id-token: "write" # Required for GCP Workload Identity
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: "npm"
-
-      - name: Download all prebuilds
-        uses: actions/download-artifact@v4
-        with:
-          path: prebuilds/
-          pattern: prebuilds-*
-          merge-multiple: true
-
-      - name: Verify prebuilds structure
-        run: |
-          echo "Listing prebuilds directory structure:"
-          ls -R prebuilds/ || echo "No prebuilds found"
-
-      # 1. Authenticate with Google Cloud
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: "projects/474483455540/locations/global/workloadIdentityPools/github-infra-repository/providers/github"
-          service_account: "github-actions-sa@jabali-infra.iam.gserviceaccount.com"
-          token_format: "access_token"
-
-      # 2. Configure NPM to use the GCP Token
-      - name: Configure NPM Auth
-        run: |
-          REGISTRY_URL="https://us-east4-npm.pkg.dev/jabali-infra/npm-infra/"
-          REGISTRY_NO_PROTO=${REGISTRY_URL#http*:}
-
-          echo "@jabali:registry=${REGISTRY_URL}" > .npmrc
-          echo "${REGISTRY_NO_PROTO}:_authToken=${{ steps.auth.outputs.access_token }}" >> .npmrc
-          echo "${REGISTRY_NO_PROTO}:always-auth=true" >> .npmrc
-
-      # 3. Publish
-      - name: Publish to GCP Artifact Registry
-        run: npm publish --access public --tag jabali
-        env:
-          NODE_AUTH_TOKEN: ${{ steps.auth.outputs.access_token }}
-
-  bump-jabali-prerelease:
-    name: Bump jabali prerelease
-    needs: publish
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
-    uses: ./.github/workflows/bump-jabali-prerelease.yml

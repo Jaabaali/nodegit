@@ -1,8 +1,8 @@
 {
-  "name": "@jabali/nodegit",
-  "description": "Node.js libgit2 asynchronous native bindings",
+  "name": "@jabali-ai/nodegit",
+  "description": "NodeGit maintained for Jabali Studio, with modern Node.js and Electron support",
   "version": "0.28.0-jabali.0",
-  "homepage": "http://nodegit.org",
+  "homepage": "https://github.com/Jaabaali/nodegit#readme",
   "keywords": [
     "libgit2",
     "git2",
@@ -28,10 +28,12 @@
   "main": "lib/nodegit.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/Jaabaali/nodegit.git"
+    "url": "git+https://github.com/Jaabaali/nodegit.git"
   },
   "publishConfig": {
-    "registry": "https://us-east4-npm.pkg.dev/jabali-infra/npm-infra/"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag": "jabali"
   },
   "directories": {
     "build": "./build",
@@ -100,8 +102,9 @@
     "rebuildDebug": "node generate && node-gyp configure --debug build",
     "recompile": "node-gyp configure build",
     "recompileDebug": "node-gyp configure --debug build",
-    "login:google-artifactregistry": "npx google-artifactregistry-auth",
     "test": "npm run lint && node --expose-gc test",
-    "xcodeDebug": "node-gyp configure -- -f xcode"
+    "xcodeDebug": "node-gyp configure -- -f xcode",
+    "prepack": "node generate",
+    "test:package": "node test/package.js"
   }
 }

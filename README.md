@@ -1,133 +1,79 @@
-# @jabali/nodegit
+# @jabali-ai/nodegit
 
-> Node bindings to the [libgit2](http://libgit2.github.com/) project.
+NodeGit maintained for Jabali Studio's Node.js and Electron requirements.
+For general-purpose use, start with [upstream NodeGit](https://github.com/nodegit/nodegit).
 
-[![Actions Status](https://github.com/Jaabaali/nodegit/workflows/Testing/badge.svg)](https://github.com/Jaabaali/nodegit/actions)
+[![Testing](https://github.com/Jaabaali/nodegit/actions/workflows/tests.yml/badge.svg)](https://github.com/Jaabaali/nodegit/actions/workflows/tests.yml)
 
-**Stable (libgit2@v0.28.3): 0.28.3**
+This downstream fork updates libgit2, runtime support, and packaging, and may add
+compatible APIs. It is not merely a redistribution of upstream prebuilt binaries.
 
-Downstream fork of [nodegit](https://github.com/nodegit/nodegit) maintained by tje Jabali team. This fork is specifically optimized for modern runtime environments (Node.js v24+ and Electron v40+) and includes prebuilt native binaries bundled directly inside the published package, eliminating the need for network requests during installation.
+## Versioning and compatibility
 
-## Installation & Registry Configuration
+Releases use `0.28.0-jabali.N`: the base identifies the upstream development line,
+and `N` identifies a Jabali revision. The initial baseline is upstream
+`0.28.0-alpha.38` (`e6c71bc1`), not a claim that upstream 0.28.0 is stable.
 
-This package is published to the private Google Cloud Artifact Registry (GCP) at:
-`https://us-east4-npm.pkg.dev/jabali-infra/npm-infra`
+Within a Jabali revision series, we aim to preserve existing APIs and documented
+behavior while allowing compatible additions. Known differences and runtime changes
+must be documented in release notes. Intentional breaking changes require a new,
+explicitly documented release line. These versions are npm prereleases; Studio
+should pin an exact version rather than rely on normal minor-version ranges.
 
-### 1. Registry Setup
+The bundled libgit2 is Jabali's patched **1.9.7**, pinned through the submodule to
+`ab53b868ec186927eaccfc1409d24ab4c331df77`. Package versions do not track libgit2 versions.
 
-To configure npm or yarn to associate the `@jabali` scope with this registry, you can retrieve the correct configuration settings by running `gcloud`:
+## Installation
 
-```bash
-gcloud artifacts print-settings npm \
-    --project=jabali-infra \
-    --repository=npm-infra \
-    --location=us-east4 \
-    --scope=@jabali
-```
-
-This will print the settings you need to append to your `.npmrc` file. For reference, a typical `.npmrc` entry looks like this:
-
-```ini
-@jabali:registry=https://us-east4-npm.pkg.dev/jabali-infra/npm-infra/
-```
-
-### 2. Authenticating & Refreshing Tokens
-
-Before running any `npm` or `yarn` command (such as `npm install` or `npm publish`), you will need to authenticate and refresh the access token in your `.npmrc` file. This can be done by running:
-
-```bash
-npx google-artifactregistry-auth PATH_TO_NPMRC
-```
-
-or simply run
-
-```bash
-npm run login:google-artifactregistry
-```
-
-_(Where `PATH_TO_NPMRC` is the path to your `.npmrc` file, e.g., `./.npmrc` or `~/.npmrc`)_.
-
-### 3. Installation Options
-
-You can install this package in one of two ways:
-
-#### Option A: Install as Scoped Package
-
-To use the package directly under its scoped name:
-
-```bash
-npm install @jabali/nodegit
-```
-
-_Note: This requires updating your code imports to refer to `@jabali/nodegit` (e.g., `require("@jabali/nodegit")`)._
-
-#### Option B: Install as an Alias (Recommended for existing codebases)
-
-If you want to use this fork as a drop-in replacement without modifying any existing `require("nodegit")` or `import ... from "nodegit"` statements throughout your codebase, you can install the scoped package under the `nodegit` name alias:
-
-```bash
-npm install nodegit@npm:@jabali/nodegit
-```
-
-## Compatibility & Prebuilt Binaries
-
-This fork of NodeGit is specifically optimized and maintained for modern runtime environments:
-
-- **Runtime Support**: Full out-of-the-box compatibility with **Node.js v24+** and **Electron v40+**.
-- **Offline Bundling**: Prebuilt native binaries are bundled directly inside the published package (using `prebuildify` + `node-gyp-build`). Unlike the upstream package which relies on download-on-install scripts (e.g., `node-pre-gyp` fetching from external AWS S3 buckets), this package requires **no network requests during installation**, making it highly reliable, secure, and compatible with offline or air-gapped development environments.
-- **Compilation Fallback**: If a compatible prebuilt binary is not found for your system architecture, it automatically falls back to a local build via `node-gyp` (which requires local build tools like Xcode Command Line Tools, GCC, and Python).
-
-## Upstream API Documentation
-
-[http://www.nodegit.org/](http://www.nodegit.org/)
-
-## Installing from Source
-
-If you receive errors about libstdc++, which are commonly experienced when
-building on Travis-CI, you can fix this by upgrading to the latest
-libstdc++-4.9.
-
-In Ubuntu:
+The public package name is `@jabali-ai/nodegit` on npmjs. Once the first release is
+published, install an exact revision:
 
 ```sh
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-sudo apt-get update
-sudo apt-get install libstdc++-4.9-dev
+npm install --save-exact @jabali-ai/nodegit@0.28.0-jabali.0
 ```
 
-If you receive errors about _lifecycleScripts_ preinstall/install you probably miss _libssl-dev_
-In Ubuntu:
+Existing code can retain `require("nodegit")` with an npm alias:
 
+```sh
+npm install --save-exact nodegit@npm:@jabali-ai/nodegit@0.28.0-jabali.0
 ```
-sudo apt-get install libssl-dev
+
+## Runtime support
+
+Node.js 24 is the minimum. CI tests Node.js 24 and 26 on Linux x64, macOS arm64,
+and Windows x64. Windows arm64 is built but not runtime-tested.
+The prebuild configuration targets Node.js 24, 25, and 26 and Electron 42;
+Electron runtime validation remains a release requirement. This does not promise
+support for every later Node.js or Electron release.
+
+Matching native binaries are loaded from the package using `node-gyp-build`.
+When no matching binary is available, installation builds from source and requires
+a compiler, Python, and platform development dependencies. Dependency installation
+and source builds may require network access.
+
+## Building and releasing
+
+```sh
+git clone --recurse-submodules https://github.com/Jaabaali/nodegit.git
+cd nodegit
+npm ci
+npm test
 ```
 
-You will need the following libraries installed on your linux machine:
+See [RELEASING.md](RELEASING.md) for the release process. Merging into `main` runs
+CI and builds artifacts; it does not publish a package or bump its version.
 
-- libpcre
-- libpcreposix
-- libkrb5
-- libk5crypto
-- libcom_err
-
-When building locally, you will also need development packages for kerberos and pcre, so both of these utilities must be present on your machine:
-
-- pcre-config
-- krb5-config
-
-If you are still encountering problems while installing, you should try the
-[Building from source](http://www.nodegit.org/guides/install/from-source/)
-instructions.
+Upstream API documentation: <https://www.nodegit.org/>.
 
 ## API examples.
 
 > [!NOTE]
-> **ESM (ECMAScript Modules) style using `import` is preferred** and highly recommended over CJS (CommonJS `require`) for `@jabali/nodegit`.
+> **ESM (ECMAScript Modules) style using `import` is preferred** and highly recommended over CJS (CommonJS `require`) for `@jabali-ai/nodegit`.
 
 ### Cloning a repository and reading a file:
 
 ```javascript
-import Git from "@jabali/nodegit";
+import Git from "@jabali-ai/nodegit";
 
 // Clone a given repository into the `./tmp` folder.
 Git.Clone("https://github.com/Jaabaali/nodegit", "./tmp")
@@ -167,7 +113,7 @@ Git.Clone("https://github.com/Jaabaali/nodegit", "./tmp")
 ### Emulating git log:
 
 ```javascript
-import Git from "@jabali/nodegit";
+import Git from "@jabali-ai/nodegit";
 
 // Open the repository directory.
 Git.Repository.open("tmp")

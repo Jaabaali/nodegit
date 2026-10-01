@@ -59,11 +59,9 @@ jobs:
         run: npm run test:package
 
       - name: Prebuild
-        if: github.ref == 'refs/heads/main'
         run: npm run prebuild
 
       - name: Upload Prebuild Artifacts
-        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: prebuilds-linux-${{ matrix.node }}-x64
@@ -113,11 +111,9 @@ jobs:
         run: npm run test:package
 
       - name: Prebuild
-        if: github.ref == 'refs/heads/main'
         run: npm run prebuild
 
       - name: Upload Prebuild Artifacts
-        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: prebuilds-macos-${{ matrix.node }}-${{ matrix.arch }}
@@ -175,13 +171,15 @@ jobs:
         run: npm run test:package
 
       - name: Prebuild
-        if: github.ref == 'refs/heads/main'
         env:
           npm_config_arch: ${{ matrix.arch }}
+          PREBUILD_ARCH: ${{ matrix.arch }}
         run: npm run prebuild
 
+      - name: Verify Windows prebuild architecture
+        run: node utils/verifyWindowsPrebuilds.js ${{ matrix.arch }}
+
       - name: Upload Prebuild Artifacts
-        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: prebuilds-windows-${{ matrix.node }}-${{ matrix.arch }}

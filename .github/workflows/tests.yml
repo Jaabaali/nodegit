@@ -134,7 +134,6 @@ jobs:
     steps:
       - name: Setup Environment
         run: |
-          git config --file C:\ProgramData\Git\config core.autocrlf input
           git config --system core.autocrlf input
           git config --global core.autocrlf input
           git config --global user.name "John Doe"

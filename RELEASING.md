@@ -14,6 +14,10 @@ and lockfile versions synchronized. For the next revision:
 npm version prerelease --preid=jabali --no-git-tag-version
 ```
 
+Use [Conventional Commits](CONTRIBUTING.md#commit-messages-and-pull-request-titles)
+to describe changes and organize release notes. Commit types do not replace this
+upstream-based version policy or trigger publication.
+
 Each revision should preserve the preceding revision's API and documented
 behavior. Compatible additions are welcome. Document intentional breaking
 changes under a new release line before shipping them. Track libgit2 independently

@@ -3,7 +3,6 @@
 /examples/
 /generate/
 /guides/
-/lib/
 /test/
 /vendor/Release/
 
@@ -23,5 +22,12 @@ appveyor.yml
 *.filters
 *.log
 *.md
+!RELEASING.md
 *.sln
 *.vcxproj
+.nyc_output/
+
+/.github/
+/vendor/libgit2/build*/
+/vendor/libgit2/tests/
+*.tgz

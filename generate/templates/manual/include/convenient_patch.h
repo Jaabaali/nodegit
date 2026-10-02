@@ -29,6 +29,8 @@ struct PatchData {
   git_diff_file old_file;
   std::vector<HunkData *> *hunks;
   size_t numHunks;
+  char *content;
+  size_t content_len;
 };
 
 PatchData *createFromRaw(git_patch *raw);
@@ -71,6 +73,7 @@ class ConvenientPatch : public Nan::ObjectWrap {
 
     // hunk methods
     static NAN_METHOD(Size);
+    static NAN_METHOD(ToBuf);
 
     struct HunksBaton {
       PatchData *patch;

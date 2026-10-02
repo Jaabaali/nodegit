@@ -38,7 +38,7 @@ NAN_METHOD(Wrapper::JSNewFunction) {
     return Nan::ThrowError("void * is required.");
   }
 
-  Wrapper* object = new Wrapper(External::Cast(*info[0])->Value());
+  Wrapper* object = new Wrapper(nodegit::ExternalValue(Local<External>::Cast(info[0])));
   object->Wrap(info.Holder());
 
   info.GetReturnValue().Set(info.Holder());

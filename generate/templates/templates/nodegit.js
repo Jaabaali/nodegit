@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var util = require("util");
+var path = require("path");
 var worker;
 
 try {
@@ -8,10 +9,8 @@ try {
 
 var rawApi;
 
-// Attempt to load the production release first, if it fails fall back to the
-// debug release.
 try {
-  rawApi = require("../build/Release/nodegit.node");
+  rawApi = require("node-gyp-build")(path.join(__dirname, ".."));
 }
 catch (ex) {
   /* istanbul ignore next */

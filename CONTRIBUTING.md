@@ -1,6 +1,40 @@
 Contribution Guidelines
 -----------------------
 
+## Commit messages and pull request titles
+
+New Jabali-authored commits and pull request titles follow
+[Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/):
+
+```text
+type(optional-scope): concise description
+```
+
+Use `feat` for new functionality, `fix` for bug fixes, and `docs`, `test`, `ci`,
+`build`, `refactor`, `perf`, `style`, `chore`, or `revert` as appropriate for other
+changes. Use lowercase types and descriptive scopes such as `install`, `bindings`,
+`deps`, or `windows` when helpful.
+
+Examples:
+
+```text
+fix(install): honor explicit Electron rebuild targets
+build(deps): update node-gyp for Visual Studio 2026
+ci(windows): verify ARM64 prebuild architecture
+docs: clarify the upstream compatibility baseline
+```
+
+For breaking changes, add `!` before the colon and include a `BREAKING CHANGE:`
+footer describing the impact and migration. Breaking changes still require the
+release planning described in [RELEASING.md](RELEASING.md).
+
+This convention applies going forward; preserve existing commits and upstream
+history. Git-generated merge and revert messages are allowed. Do not rewrite
+imported commits merely to change their messages.
+
+Commit types describe changes; they do not automatically bump versions or publish
+packages. Releases continue to use the documented `0.28.0-jabali.N` policy.
+
 ### A Note on Issues and Support ##
 
 We try to be available pretty often to help when problems come up. We like to split incoming questions

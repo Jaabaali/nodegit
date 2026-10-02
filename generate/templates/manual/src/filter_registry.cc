@@ -54,7 +54,7 @@ NAN_METHOD(GitFilterRegistry::GitFilterRegister) {
   }
 
   FilterRegisterBaton *baton = new FilterRegisterBaton();
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   std::map<std::string, std::shared_ptr<nodegit::CleanupHandle>> cleanupHandles;
 
   {
@@ -188,7 +188,7 @@ NAN_METHOD(GitFilterRegistry::GitFilterUnregister) {
   Nan::Callback *callback = new Nan::Callback(Local<Function>::Cast(info[1]));
   UnregisterWorker *worker = new UnregisterWorker(baton, callback);
 
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

@@ -423,7 +423,7 @@ NAN_METHOD(GitRepository::RefreshReferences)
   RefreshReferencesWorker *worker = new RefreshReferencesWorker(baton, callback, cleanupHandles);
   worker->Reference<GitRepository>("repo", info.Holder());
   worker->Reference("signatureType", signatureType);
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

@@ -15,7 +15,7 @@ NAN_METHOD(GitRemote::ReferenceList)
   std::map<std::string, std::shared_ptr<nodegit::CleanupHandle>> cleanupHandles;
   ReferenceListWorker *worker = new ReferenceListWorker(baton, callback, cleanupHandles);
   worker->Reference<GitRemote>("remote", info.Holder());
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

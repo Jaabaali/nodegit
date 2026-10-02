@@ -103,6 +103,7 @@
                 "-Wno-unused-variable",
                 "-Wint-conversions",
                 "-Wmissing-field-initializers",
+                "-Wno-cast-function-type-mismatch",
                 "-Wno-c++11-extensions"
               ]
             }

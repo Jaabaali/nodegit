@@ -1,4 +1,5 @@
 /build/
+/prebuilds/
 /coverage/
 /include/
 /lib/enums.js

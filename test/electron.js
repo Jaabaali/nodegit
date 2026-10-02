@@ -27,10 +27,12 @@ try {
     run(process.execPath, [path.join(electronDirectory, "install.js")], env);
     const executable = path.join(electronDirectory, "dist",
       fs.readFileSync(path.join(electronDirectory, "path.txt"), "utf8").trim());
-    run(executable, [path.join(__dirname, "electron-smoke.js")], {
+    const repository = fs.mkdtempSync(path.join(temporary, "repository-"));
+    run(executable, [path.join(__dirname, "electron-smoke.js"), repository], {
       ...env, ELECTRON_RUN_AS_NODE: "1", PREBUILDS_ONLY: "1"
     });
   }
 } finally {
+  // Windows keeps native repository files locked until the Electron child exits.
   fs.rmSync(temporary, { recursive: true, force: true });
 }

@@ -23,6 +23,28 @@ behavior. Compatible additions are welcome. Document intentional breaking
 changes under a new release line before shipping them. Track libgit2 independently
 and record its exact version and commit in every release's notes.
 
+## Electron cadence
+
+Track the stable majors and next prerelease listed at
+<https://releases.electronjs.org/>. Keep the latest three stable majors in
+`utils/runtimeTargets.json`, with exact patch versions for reproducibility.
+The initial matrix is 42.11.10, 43.7.7, and 44.5.1; 45.0.0-alpha.14 is advisory.
+Electron 42.0.0 has a Windows header regression fixed in later patches:
+<https://github.com/electron/electron/pull/51695>.
+
+Check the release list weekly and when preparing a Studio Electron upgrade.
+Update target pins and the locked `node-abi` database together, run platform CI,
+and test Studio with its proposed Electron version. The weekly preview workflow
+retests the pinned next-major candidate; it does not discover newer versions.
+When a new major stabilizes, promote it into the required matrix and select the
+next prerelease. Do not infer compatibility from Electron's embedded Node version:
+Electron has its own native ABI and Chromium/V8 changes.
+
+`npm run prebuild` creates runtime-tagged stable binaries. `npm run test:electron`
+downloads the pinned runtimes and tests prebuilds with Electron's Node mode,
+without loading a checkout's host build. Use `-- --preview` with either command
+for the next major. Full Studio main-process startup remains a release gate.
+
 ## Release checklist
 
 1. Prepare a version/release-notes PR. List the upstream baseline, additions,

@@ -47,7 +47,7 @@
     "got": "^14.4.7",
     "json5": "^2.1.0",
     "lodash": "^4.18.1",
-    "nan": "2.28.0",
+    "nan": "2.29.0",
     "node-gyp": "~12.4.0",
     "node-gyp-build": "^4.8.4",
     "tar-fs": "^3.0.9"
@@ -97,7 +97,7 @@
     "mocha": "mocha --expose-gc test/runner test/tests --timeout 15000",
     "mochaDebug": "mocha --expose-gc --inspect-brk test/runner test/tests --timeout 15000",
     "postinstall": "node lifecycleScripts/postinstall",
-    "prebuild": "prebuildify --no-napi -t 24.0.0 -t 25.0.0 -t 26.0.0 -t electron@42.0.0 --strip",
+    "prebuild": "node utils/prebuild.js",
     "rebuild": "node generate && node-gyp configure build",
     "rebuildDebug": "node generate && node-gyp configure --debug build",
     "recompile": "node-gyp configure build",
@@ -105,6 +105,7 @@
     "test": "npm run lint && node --expose-gc test",
     "xcodeDebug": "node-gyp configure -- -f xcode",
     "prepack": "node generate",
-    "test:package": "node test/package.js"
+    "test:package": "node test/package.js",
+    "test:electron": "node test/electron.js"
   }
 }

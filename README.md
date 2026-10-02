@@ -42,14 +42,28 @@ npm install --save-exact nodegit@npm:@jabali-ai/nodegit@0.28.0-jabali.0
 
 Node.js 24 is the minimum. CI tests Node.js 24 and 26 on Linux x64, macOS arm64,
 and Windows x64. Windows arm64 is built but not runtime-tested.
-The prebuild configuration targets Node.js 24, 25, and 26 and Electron 42;
-Electron runtime validation remains a release requirement. This does not promise
-support for every later Node.js or Electron release.
+The prebuild configuration targets Node.js 24, 25, and 26 and Electron 42–44.
+Exact versions are recorded in `utils/runtimeTargets.json`. CI runs offline
+repository, commit, blob, and patch smoke tests in each stable Electron runtime
+on Linux x64, macOS arm64, and Windows x64. Electron 45 prerelease builds and
+runtime tests are advisory until promoted to the stable matrix. These checks do
+not replace Jabali Studio integration testing or promise support for later releases.
 
 Matching native binaries are loaded from the package using `node-gyp-build`.
 When no matching binary is available, installation builds from source and requires
 a compiler, Python, and platform development dependencies. Dependency installation
 and source builds may require network access.
+
+## TypeScript
+
+This package does not yet bundle TypeScript declarations. Studio currently uses
+`@types/nodegit@0.28.9`, local declaration patches, and the `nodegit` import name.
+Installing this fork under an npm alias preserves that setup; importing the scoped
+package directly requires declarations for that module name.
+
+The binding generator emits C++ and JavaScript, not `.d.ts` files. TypeScript
+declarations must be checked separately against both the generated native API and
+the handwritten JavaScript convenience API.
 
 ## Building and releasing
 

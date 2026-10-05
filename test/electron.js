@@ -17,7 +17,17 @@ function run(command, args, env) {
   }
 }
 
+const root = path.resolve(__dirname, "..");
+const hostPrebuild = require("node-gyp-build").resolve(root);
+const shadow = path.join(root, "build", "Release", "nodegit.node");
+const previous = fs.existsSync(shadow) ? fs.readFileSync(shadow) : null;
+
 try {
+  // Reproduce installation's host source-build output alongside Electron prebuilds.
+  fs.mkdirSync(path.dirname(shadow), { recursive: true });
+  if (hostPrebuild !== shadow) {
+    fs.copyFileSync(hostPrebuild, shadow);
+  }
   for (const version of versions) {
     run(process.execPath, [process.env.npm_execpath, "install", "--prefix", temporary,
       "--ignore-scripts", "--no-audit", "--no-fund", "electron@" + version], process.env);
@@ -29,10 +39,15 @@ try {
       fs.readFileSync(path.join(electronDirectory, "path.txt"), "utf8").trim());
     const repository = fs.mkdtempSync(path.join(temporary, "repository-"));
     run(executable, [path.join(__dirname, "electron-smoke.js"), repository], {
-      ...env, ELECTRON_RUN_AS_NODE: "1", PREBUILDS_ONLY: "1"
+      ...env, ELECTRON_RUN_AS_NODE: "1", PREBUILDS_ONLY: ""
     });
   }
 } finally {
+  if (previous) {
+    fs.writeFileSync(shadow, previous);
+  } else {
+    fs.rmSync(shadow, { force: true });
+  }
   // Windows keeps native repository files locked until the Electron child exits.
   fs.rmSync(temporary, { recursive: true, force: true });
 }

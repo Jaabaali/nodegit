@@ -9,17 +9,7 @@ try {
 
 var rawApi;
 
-try {
-  rawApi = require("node-gyp-build")(path.join(__dirname, ".."));
-}
-catch (ex) {
-  /* istanbul ignore next */
-  if (ex.code !== "MODULE_NOT_FOUND") {
-    throw ex;
-  }
-
-  rawApi = require("../build/Debug/nodegit.node");
-}
+rawApi = require("../utils/loadNative")(path.join(__dirname, ".."));
 
 var promisify = fn => fn && util.promisify(fn); // jshint ignore:line
 

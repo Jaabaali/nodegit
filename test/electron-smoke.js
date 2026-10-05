@@ -1,4 +1,4 @@
-// Run in Electron against prebuilds, never a leftover host-Node build.
+// Run in Electron with a host-Node build present to verify prebuild fallback.
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");

@@ -3,7 +3,7 @@ const targets = require("./runtimeTargets.json");
 
 async function main() {
   const builds = process.argv.includes("--preview") ?
-    { electron: [targets.electronPreview] }
+    { node: [process.versions.node], electron: [targets.electronPreview] }
     : { node: targets.node, electron: targets.electron };
 
   for (const [runtime, versions] of Object.entries(builds)) {

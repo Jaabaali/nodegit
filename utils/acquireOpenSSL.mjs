@@ -441,19 +441,26 @@ const buildPackage = async () => {
   await fs.writeFile(`${getOpenSSLPackagePath()}.sha256`, digest);
 };
 
+// Derive the sidecar from the selected mirror URL, preserving query parameters.
+export const getOpenSSLDownloadOptions = (downloadBinUrl, env = process.env) => {
+  const options = { downloadBinUrl };
+  const checksum = env.npm_config_openssl_bin_sha256;
+  if (checksum && checksum !== 'skip') {
+    options.maybeDownloadSha256 = checksum;
+  } else if (checksum !== 'skip') {
+    const checksumUrl = new URL(downloadBinUrl);
+    checksumUrl.pathname += '.sha256';
+    options.maybeDownloadSha256Url = checksumUrl.toString();
+  }
+  return options;
+};
+
 const acquireOpenSSL = async () => {
   try {
     const downloadBinUrl = process.env.npm_config_openssl_bin_url
       || (['win32', 'darwin'].includes(process.platform) ? getOpenSSLPackageUrl() : undefined);
     if (downloadBinUrl && downloadBinUrl !== 'skip' && !process.env.NODEGIT_OPENSSL_BUILD_PACKAGE) {
-      const downloadOptions = { downloadBinUrl };
-      if (process.env.npm_config_openssl_bin_sha256 !== 'skip') {
-        if (process.env.npm_config_openssl_bin_sha256) {
-          downloadOptions.maybeDownloadSha256 = process.env.npm_config_openssl_bin_sha256;
-        } else {
-          downloadOptions.maybeDownloadSha256Url = `${getOpenSSLPackageUrl()}.sha256`;
-        }
-      }
+      const downloadOptions = getOpenSSLDownloadOptions(downloadBinUrl);
 
       await downloadOpenSSLIfNecessary(downloadOptions);
       return;

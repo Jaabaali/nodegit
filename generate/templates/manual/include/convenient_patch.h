@@ -29,8 +29,7 @@ struct PatchData {
   git_diff_file old_file;
   std::vector<HunkData *> *hunks;
   size_t numHunks;
-  char *content;
-  size_t content_len;
+  git_patch *raw;
 };
 
 PatchData *createFromRaw(git_patch *raw);

@@ -18,9 +18,7 @@ using namespace node;
 void PatchDataFree(PatchData *patch) {
   free((void *)patch->old_file.path);
   free((void *)patch->new_file.path);
-  if (patch->content) {
-    free((void *)patch->content);
-  }
+  git_patch_free(patch->raw);
   while(!patch->hunks->empty()) {
     HunkData *hunk = patch->hunks->back();
     patch->hunks->pop_back();
@@ -30,8 +28,10 @@ void PatchDataFree(PatchData *patch) {
       free((void *)line->content);
       free((void *)line);
     }
+    delete hunk->lines;
     delete hunk;
   }
+  delete patch->hunks;
   delete patch;
 }
 
@@ -58,24 +58,9 @@ PatchData *createFromRaw(git_patch *raw) {
   patch->hunks = new std::vector<HunkData *>;
   patch->hunks->reserve(patch->numHunks);
 
-  git_buf buf = GIT_BUF_INIT;
-  int buf_result = git_patch_to_buf(&buf, raw);
-  if (buf_result == 0) {
-    patch->content_len = buf.size;
-    patch->content = (char *)malloc(buf.size + 1);
-    if (patch->content) {
-      if (buf.size > 0) {
-        memcpy(patch->content, buf.ptr, buf.size);
-      }
-      patch->content[buf.size] = '\0';
-    } else {
-      patch->content_len = 0;
-    }
-  } else {
-    patch->content = NULL;
-    patch->content_len = 0;
-  }
-  git_buf_dispose(&buf);
+  // Own the native patch (which retains its diff) until this wrapper is freed.
+  // Formatting on demand avoids a second full text copy for metadata-only callers.
+  patch->raw = raw;
 
   for (unsigned int i = 0; i < patch->numHunks; ++i) {
     HunkData *hunkData = new HunkData();
@@ -347,13 +332,17 @@ NAN_METHOD(ConvenientPatch::ToBuf) {
   Nan::EscapableHandleScope scope;
 
   PatchData *patch = Nan::ObjectWrap::Unwrap<ConvenientPatch>(info.Holder())->GetValue();
-  if (patch->content) {
-    return info.GetReturnValue().Set(
-      scope.Escape(Nan::New<v8::String>(patch->content, patch->content_len).ToLocalChecked())
-    );
+  git_buf buf = GIT_BUF_INIT;
+  if (git_patch_to_buf(&buf, patch->raw) < 0) {
+    git_buf_dispose(&buf);
+    return Nan::ThrowError("Could not format patch text");
   }
-
-  return info.GetReturnValue().Set(scope.Escape(Nan::Null()));
+  v8::MaybeLocal<v8::String> text = Nan::New<v8::String>(buf.ptr ? buf.ptr : "", buf.size);
+  git_buf_dispose(&buf);
+  if (text.IsEmpty()) {
+    return;
+  }
+  info.GetReturnValue().Set(scope.Escape(text.ToLocalChecked()));
 }
 
 NAN_METHOD(ConvenientPatch::OldFile) {

@@ -1,6 +1,7 @@
 const targetArg = process.argv[2] || 'none';
 
-let runtime = process.env.npm_config_runtime || 'node';
+let runtime = require("./isBuildingForElectron")(process.argv[3]) ? 'electron' :
+  (process.env.npm_package_config_node_gyp_runtime || process.env.npm_config_runtime || 'node');
 let versionStr = targetArg;
 
 // 1. Parse target string (e.g. electron@40.0.0)
@@ -15,13 +16,6 @@ let cxxStandard = '14';
 
 if (targetSpecified) {
   const majorVersion = Number.parseInt(versionStr.split('.')[0]);
-
-  // If runtime is not explicitly electron, but version is high (>= 30),
-  // it's likely Electron. When Node.js eventually reaches v30,
-  // it will also require C++20, so this assumption remains safe.
-  if (runtime !== 'electron' && majorVersion >= 30) {
-    runtime = 'electron';
-  }
 
   if (runtime === 'electron') {
     // Thresholds for Electron versions

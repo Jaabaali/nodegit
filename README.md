@@ -50,9 +50,27 @@ runtime tests are advisory until promoted to the stable matrix. These checks do
 not replace Jabali Studio integration testing or promise support for later releases.
 
 Matching native binaries are loaded from the package using `node-gyp-build`.
+Electron prefers its matching prebuild over a host-Node source build left by
+installation. When no Electron prebuild matches, the normal source-build lookup
+applies; that build must target the Electron version being used.
 When no matching binary is available, installation builds from source and requires
 a compiler, Python, and platform development dependencies. Dependency installation
 and source builds may require network access.
+
+Electron source builds may also compile OpenSSL when no prepared OpenSSL directory
+or binary mirror is configured. On macOS this requires Perl, Xcode command-line
+tools, and make; the OpenSSL build runs its tests. On Windows it requires Perl
+and Visual Studio C++ build tools, including the target architecture tools and
+`vcvarsall.bat` environment. A prepared directory can be selected with
+`npm_config_openssl_dir`, or a binary mirror with `npm_config_openssl_bin_url`
+and an optional `npm_config_openssl_bin_sha256`. Without an explicit hash, the
+mirror must provide a `.sha256` sidecar. Source compilation can take considerably
+longer than using a prebuild.
+
+Studio currently ships for macOS arm64 and Windows. Linux CI provides modern
+Linux validation; compatibility with older distributions is outside the current
+scope. Before shipping Studio for Linux, validate and document the required glibc,
+OpenSSL, and other system library versions on the chosen baseline.
 
 ## TypeScript
 

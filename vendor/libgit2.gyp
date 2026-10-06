@@ -270,11 +270,15 @@
         }],
         ["OS=='win' or OS=='linux' or OS.endswith('bsd') or <(is_IBMi) == 1", {
           "dependencies": [
-            "pcre"
+            "pcre2"
           ],
-          "include_dirs": ["libgit2/deps/pcre"],
+          "include_dirs": ["libgit2/deps/pcre2"],
           "defines": [
-            "GIT_REGEX_BUILTIN"
+            "GIT_REGEX_BUILTIN",
+            "PCRE2_STATIC",
+            "PCRE2_EXPORT=",
+            "PCRE2_EXP_DECL=",
+            "PCRE2_EXP_DEFN="
           ]
         }],
         ["OS=='linux' or OS.endswith('bsd') or <(is_IBMi) == 1", {
@@ -572,87 +576,49 @@
       ]
     },
     {
-      "target_name": "pcre",
+      "target_name": "pcre2",
       "type": "static_library",
+      # Keep sources and configuration aligned with libgit2/deps/pcre2/CMakeLists.txt.
+      "include_dirs": ["static_config/pcre2"],
+      "defines": [
+        "HAVE_CONFIG_H", "PCRE2_CODE_UNIT_WIDTH=8", "PCRE2_STATIC",
+        "PCRE2_EXPORT=", "PCRE2_EXP_DECL=", "PCRE2_EXP_DEFN="
+      ],
       "sources": [
-        "libgit2/deps/pcre/pcre_byte_order.c",
-        "libgit2/deps/pcre/pcre_chartables.c",
-        "libgit2/deps/pcre/pcre_compile.c",
-        "libgit2/deps/pcre/pcre_config.c",
-        "libgit2/deps/pcre/pcre_dfa_exec.c",
-        "libgit2/deps/pcre/pcre_exec.c",
-        "libgit2/deps/pcre/pcre_fullinfo.c",
-        "libgit2/deps/pcre/pcre_get.c",
-        "libgit2/deps/pcre/pcre_globals.c",
-        "libgit2/deps/pcre/pcre_jit_compile.c",
-        "libgit2/deps/pcre/pcre_maketables.c",
-        "libgit2/deps/pcre/pcre_newline.c",
-        "libgit2/deps/pcre/pcre_ord2utf8.c",
-        "libgit2/deps/pcre/pcreposix.c",
-        "libgit2/deps/pcre/pcre_printint.c",
-        "libgit2/deps/pcre/pcre_refcount.c",
-        "libgit2/deps/pcre/pcre_string_utils.c",
-        "libgit2/deps/pcre/pcre_study.c",
-        "libgit2/deps/pcre/pcre_tables.c",
-        "libgit2/deps/pcre/pcre_ucd.c",
-        "libgit2/deps/pcre/pcre_valid_utf8.c",
-        "libgit2/deps/pcre/pcre_version.c",
-        "libgit2/deps/pcre/pcre_xclass.c",
+        "libgit2/deps/pcre2/pcre2_auto_possess.c",
+        "libgit2/deps/pcre2/pcre2_chartables.c",
+        "libgit2/deps/pcre2/pcre2_chkdint.c",
+        "libgit2/deps/pcre2/pcre2_compile.c",
+        "libgit2/deps/pcre2/pcre2_compile_cgroup.c",
+        "libgit2/deps/pcre2/pcre2_compile_class.c",
+        "libgit2/deps/pcre2/pcre2_config.c",
+        "libgit2/deps/pcre2/pcre2_context.c",
+        "libgit2/deps/pcre2/pcre2_convert.c",
+        "libgit2/deps/pcre2/pcre2_dfa_match.c",
+        "libgit2/deps/pcre2/pcre2_error.c",
+        "libgit2/deps/pcre2/pcre2_extuni.c",
+        "libgit2/deps/pcre2/pcre2_find_bracket.c",
+        "libgit2/deps/pcre2/pcre2_maketables.c",
+        "libgit2/deps/pcre2/pcre2_match.c",
+        "libgit2/deps/pcre2/pcre2_match_data.c",
+        "libgit2/deps/pcre2/pcre2_match_next.c",
+        "libgit2/deps/pcre2/pcre2_newline.c",
+        "libgit2/deps/pcre2/pcre2_ord2utf.c",
+        "libgit2/deps/pcre2/pcre2_pattern_info.c",
+        "libgit2/deps/pcre2/pcre2_script_run.c",
+        "libgit2/deps/pcre2/pcre2_serialize.c",
+        "libgit2/deps/pcre2/pcre2_string_utils.c",
+        "libgit2/deps/pcre2/pcre2_study.c",
+        "libgit2/deps/pcre2/pcre2_substitute.c",
+        "libgit2/deps/pcre2/pcre2_substring.c",
+        "libgit2/deps/pcre2/pcre2_tables.c",
+        "libgit2/deps/pcre2/pcre2_ucd.c",
+        "libgit2/deps/pcre2/pcre2_valid_utf.c",
+        "libgit2/deps/pcre2/pcre2_xclass.c"
       ],
       "conditions": [
-        ["OS=='linux' or OS.endswith('bsd') or <(is_IBMi) == 1", {
-          "defines": [
-            "HAVE_DIRENT_H",
-            "HAVE_SYS_STAT_H",
-            "HAVE_SYS_TYPES_H",
-            "HAVE_UNISTD_H",
-            "HAVE_STDINT_H",
-            "HAVE_INTTYPES_H",
-            "HAVE_BCOPY",
-            "HAVE_MEMMOVE",
-            "HAVE_STRERROR",
-            "HAVE_STRTOLL",
-            "HAVE_STRTOQ",
-            "SUPPORT_PCRE8",
-            "NO_RECURSE",
-            "HAVE_LONG_LONG",
-            "HAVE_UNSIGNED_LONG_LONG",
-            "NEWLINE=10",
-            "POSIX_MALLOC_THRESHOLD=10",
-            "LINK_SIZE=2",
-            "PARENS_NEST_LIMIT=250",
-            "MATCH_LIMIT=10000000",
-            "MATCH_LIMIT_RECURSION=10000000",
-            "PCREGREP_BUFSIZE",
-            "MAX_NAME_SIZE=32",
-            "MAX_NAME_COUNT=10000"
-          ]
-        }],
         ["OS=='win'", {
-          "defines": [
-            "HAVE_SYS_STAT_H",
-            "HAVE_SYS_TYPES_H",
-            "HAVE_WINDOWS_H",
-            "HAVE_STDINT_H",
-            "HAVE_INTTYPES_H",
-            "HAVE_MEMMOVE",
-            "HAVE_STRERROR",
-            "HAVE_STRTOLL",
-            "HAVE__STRTOI64",
-            "SUPPORT_PCRE8",
-            "NO_RECURSE",
-            "HAVE_LONG_LONG",
-            "HAVE_UNSIGNED_LONG_LONG",
-            "NEWLINE=10",
-            "POSIX_MALLOC_THRESHOLD=10",
-            "LINK_SIZE=2",
-            "PARENS_NEST_LIMIT=250",
-            "MATCH_LIMIT=10000000",
-            "MATCH_LIMIT_RECURSION=10000000",
-            "PCREGREP_BUFSIZE",
-            "MAX_NAME_SIZE=32",
-            "MAX_NAME_COUNT=10000"
-          ]
+          "defines": ["_CRT_SECURE_NO_DEPRECATE", "_CRT_SECURE_NO_WARNINGS"]
         }]
       ]
     }

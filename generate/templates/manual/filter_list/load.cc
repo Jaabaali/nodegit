@@ -96,7 +96,7 @@ NAN_METHOD(GitFilterList::Load) {
   worker->Reference<GitRepository>("repo", info[0]);
   worker->Reference<GitBlob>("blob", info[1]);
 
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

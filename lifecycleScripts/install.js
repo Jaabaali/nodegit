@@ -1,64 +1,51 @@
 var buildFlags = require("../utils/buildFlags");
 var spawn = require("child_process").spawn;
 var path = require("path");
-
-const nodePreGypModulePath = require.resolve("@mapbox/node-pre-gyp");
+var prepareForBuild = require("./preinstall");
 
 module.exports = function install() {
   console.log("[nodegit] Running install script");
 
-  var nodePreGyp = "node-pre-gyp";
-
-  if (process.platform === "win32") {
-    nodePreGyp += ".cmd";
-  }
-
-  var args = ["install"];
-
-  if (buildFlags.mustBuild) {
-    console.info(
-      "[nodegit] Pre-built download disabled, building from source."
-    );
-    args.push("--build-from-source");
-
-    if (buildFlags.debugBuild) {
-      console.info("[nodegit] Building debug version.");
-      args.push("--debug");
+  if (!buildFlags.mustBuild) {
+    try {
+      require("node-gyp-build")(path.join(__dirname, ".."));
+      console.info("[nodegit] Found local prebuild, skipping build from source.");
+      return Promise.resolve();
+    } catch (e) {
+      console.info("[nodegit] No local prebuild found, building from source.");
     }
   }
-  else {
-    args.push("--fallback-to-build");
+
+  var args = ["rebuild"];
+
+  if (buildFlags.debugBuild) {
+    console.info("[nodegit] Building debug version.");
+    args.push("--debug");
   }
 
-  return new Promise(function(resolve, reject) {
-    const gypPath = path.join(__dirname, "..", "node_modules", "node-gyp", "bin", "node-gyp.js");
+  // Package managers may hoist node-gyp outside this package's node_modules.
+  const gypPath = require.resolve("node-gyp/bin/node-gyp.js");
 
-    const nodePreGypPath = path.resolve(path.dirname(nodePreGypModulePath), path.join("..", "bin", nodePreGyp));
-    console.log("node-pre-gyp path", nodePreGypPath);
-    var spawnedNodePreGyp = spawn(nodePreGypPath, args, {
-      env: {
-        ...process.env,
-        npm_config_node_gyp: gypPath
-      },
-      shell: process.platform === "win32"
-    });
+  return Promise.resolve()
+    .then(function() {
+      return prepareForBuild();
+    })
+    .then(function() {
+      return new Promise(function(resolve, reject) {
+        var spawnedNodeGyp = spawn(process.execPath, [gypPath].concat(args), {
+          stdio: "inherit"
+        });
 
-    spawnedNodePreGyp.stdout.on("data", function(data) {
-      console.info(data.toString().trim());
-    });
-
-    spawnedNodePreGyp.stderr.on("data", function(data) {
-      console.error(data.toString().trim());
-    });
-
-    spawnedNodePreGyp.on("close", function(code) {
-      if (!code) {
-        resolve();
-      } else {
-        reject(code);
-      }
-    });
-  })
+        spawnedNodeGyp.on("error", reject);
+        spawnedNodeGyp.on("close", function(code) {
+          if (!code) {
+            resolve();
+          } else {
+            reject(code);
+          }
+        });
+      });
+    })
     .then(function() {
       console.info("[nodegit] Completed installation successfully.");
     });
@@ -70,6 +57,6 @@ if (require.main === module) {
     .catch(function(e) {
       console.error("[nodegit] ERROR - Could not finish install");
       console.error("[nodegit] ERROR - finished with error code: " + e);
-      process.exit(e);
+      process.exit(typeof e === "number" ? e : 1);
     });
 }

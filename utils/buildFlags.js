@@ -26,16 +26,25 @@ const convertArch = (archStr) => {
 }
 
 const hostArch = convertArch(process.arch);
-const targetArch = process.env.npm_config_arch
-  ? convertArch(process.env.npm_config_arch)
+// Match node-gyp's precedence for npm package config and legacy npm config.
+const config = (name) => process.env["npm_package_config_node_gyp_" + name]
+  || process.env["npm_config_" + name];
+const targetArch = config("arch")
+  ? convertArch(config("arch"))
   : hostArch;
+const runtime = process.versions.electron ? "electron" : "node";
+const targetRequested = !!config("target")
+  || (config("runtime") && config("runtime") !== runtime)
+  || targetArch !== hostArch;
 
 module.exports = {
   hostArch,
   targetArch,
   debugBuild: !!process.env.BUILD_DEBUG,
-  isElectron: process.env.npm_config_runtime === "electron",
+  isElectron: config("runtime") === "electron",
   isGitRepo: isGitRepo,
-  isNwjs: process.env.npm_config_runtime === "node-webkit",
-  mustBuild: !!(isGitRepo || process.env.BUILD_DEBUG || process.env.BUILD_ONLY)
+  isNwjs: config("runtime") === "node-webkit",
+  // A loadable host binary does not satisfy an explicit target or source build.
+  mustBuild: !!(isGitRepo || process.env.BUILD_DEBUG || process.env.BUILD_ONLY
+    || config("build_from_source") === "true" || targetRequested)
 };

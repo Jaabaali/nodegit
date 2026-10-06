@@ -51,7 +51,7 @@ NAN_METHOD(GitTree::GetAllFilepaths)
   std::map<std::string, std::shared_ptr<nodegit::CleanupHandle>> cleanupHandles;
   GetAllFilepathsWorker *worker = new GetAllFilepathsWorker(baton, callback, cleanupHandles);
   worker->Reference<GitTree>("tree", info.Holder());
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
 
   return;

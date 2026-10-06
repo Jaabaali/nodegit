@@ -15,7 +15,7 @@ NAN_METHOD(GitRepository::GetReferences)
   std::map<std::string, std::shared_ptr<nodegit::CleanupHandle>> cleanupHandles;
   GetReferencesWorker *worker = new GetReferencesWorker(baton, callback, cleanupHandles);
   worker->Reference<GitRepository>("repo", info.Holder());
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }

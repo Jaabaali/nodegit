@@ -18,6 +18,7 @@ using namespace node;
 void PatchDataFree(PatchData *patch) {
   free((void *)patch->old_file.path);
   free((void *)patch->new_file.path);
+  git_patch_free(patch->raw);
   while(!patch->hunks->empty()) {
     HunkData *hunk = patch->hunks->back();
     patch->hunks->pop_back();
@@ -27,8 +28,10 @@ void PatchDataFree(PatchData *patch) {
       free((void *)line->content);
       free((void *)line);
     }
+    delete hunk->lines;
     delete hunk;
   }
+  delete patch->hunks;
   delete patch;
 }
 
@@ -54,6 +57,10 @@ PatchData *createFromRaw(git_patch *raw) {
   patch->numHunks = git_patch_num_hunks(raw);
   patch->hunks = new std::vector<HunkData *>;
   patch->hunks->reserve(patch->numHunks);
+
+  // Own the native patch (which retains its diff) until this wrapper is freed.
+  // Formatting on demand avoids a second full text copy for metadata-only callers.
+  patch->raw = raw;
 
   for (unsigned int i = 0; i < patch->numHunks; ++i) {
     HunkData *hunkData = new HunkData();
@@ -142,6 +149,7 @@ void ConvenientPatch::InitializeComponent(Local<v8::Object> target, nodegit::Con
   Nan::SetPrototypeMethod(tpl, "hunks", Hunks, nodegitExternal);
   Nan::SetPrototypeMethod(tpl, "lineStats", LineStats, nodegitExternal);
   Nan::SetPrototypeMethod(tpl, "size", Size, nodegitExternal);
+  Nan::SetPrototypeMethod(tpl, "toBuf", ToBuf, nodegitExternal);
 
   Nan::SetPrototypeMethod(tpl, "oldFile", OldFile, nodegitExternal);
   Nan::SetPrototypeMethod(tpl, "newFile", NewFile, nodegitExternal);
@@ -169,7 +177,7 @@ NAN_METHOD(ConvenientPatch::JSNewFunction) {
        return Nan::ThrowError("A new ConvenientPatch cannot be instantiated.");
    }
 
-  ConvenientPatch* object = new ConvenientPatch(static_cast<PatchData *>(Local<External>::Cast(info[0])->Value()));
+  ConvenientPatch* object = new ConvenientPatch(static_cast<PatchData *>(nodegit::ExternalValue(Local<External>::Cast(info[0]))));
   object->Wrap(info.Holder());
 
   info.GetReturnValue().Set(info.Holder());
@@ -223,7 +231,7 @@ NAN_METHOD(ConvenientPatch::Hunks) {
 
   worker->Reference<ConvenientPatch>("patch", info.Holder());
 
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }
@@ -318,6 +326,23 @@ NAN_METHOD(ConvenientPatch::Size) {
   to = Nan::New<Number>(Nan::ObjectWrap::Unwrap<ConvenientPatch>(info.Holder())->GetNumHunks());
 
   info.GetReturnValue().Set(to);
+}
+
+NAN_METHOD(ConvenientPatch::ToBuf) {
+  Nan::EscapableHandleScope scope;
+
+  PatchData *patch = Nan::ObjectWrap::Unwrap<ConvenientPatch>(info.Holder())->GetValue();
+  git_buf buf = GIT_BUF_INIT;
+  if (git_patch_to_buf(&buf, patch->raw) < 0) {
+    git_buf_dispose(&buf);
+    return Nan::ThrowError("Could not format patch text");
+  }
+  v8::MaybeLocal<v8::String> text = Nan::New<v8::String>(buf.ptr ? buf.ptr : "", buf.size);
+  git_buf_dispose(&buf);
+  if (text.IsEmpty()) {
+    return;
+  }
+  info.GetReturnValue().Set(scope.Escape(text.ToLocalChecked()));
 }
 
 NAN_METHOD(ConvenientPatch::OldFile) {

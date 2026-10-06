@@ -1,10 +1,8 @@
 on:
   push:
     branches:
-      - master
+      - main
       - backport/*
-    tags:
-      - v*.*.*
   pull_request:
 
 name: Testing
@@ -14,14 +12,16 @@ jobs:
     name: "Linux Tests"
     strategy:
       matrix:
-        node: [20, 22, 24]
+        node: [24, 26]
       fail-fast: false
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Install Dependencies for Ubuntu
         run: sudo apt-get update && sudo apt-get install -y software-properties-common git build-essential clang libssl-dev libkrb5-dev libc++-dev wget zlib1g-dev
 
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Environment
         run: |
@@ -46,7 +46,7 @@ jobs:
           check-latest: true
 
       - name: Install
-        run: npm install
+        run: npm ci
 
       - name: Test
         run: |
@@ -55,28 +55,34 @@ jobs:
           ssh-add ~/.ssh_tests/id_rsa
           node utils/retry npm test
 
-      - name: Deploy
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          node_pre_gyp_bucket: ${{ secrets.node_pre_gyp_bucket }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.node_pre_gyp_accessKeyId }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.node_pre_gyp_secretAccessKey }}
-        run: |
-          npm install -g @mapbox/node-pre-gyp aws-sdk
-          node lifecycleScripts/clean
-          node-pre-gyp package
-          node-pre-gyp publish
+      - name: Test packed installation
+        run: npm run test:package
+
+      - name: Prebuild
+        run: npm run prebuild
+
+      - name: Test Electron runtimes
+        if: matrix.node == 24
+        run: npm run test:electron
+
+      - name: Upload Prebuild Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuilds-linux-${{ matrix.node }}-x64
+          path: prebuilds/
 
   macos-tests:
     name: "macOS Tests"
     strategy:
       matrix:
-        node: [20, 22, 24]
-        arch: [x64, arm64]
+        node: [24, 26]
+        arch: [arm64]
       fail-fast: false
-    runs-on: ${{ matrix.arch == 'x64' && 'macos-15-intel' || 'macos-15' }}
+    runs-on: "macos-latest"
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Environment
         run: |
@@ -96,7 +102,7 @@ jobs:
           check-latest: true
 
       - name: Install
-        run: npm install
+        run: npm ci
 
       - name: Test
         run: |
@@ -105,59 +111,52 @@ jobs:
           ssh-add ~/.ssh_tests/id_rsa
           node utils/retry npm test
 
-      - name: Deploy
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          node_pre_gyp_bucket: ${{ secrets.node_pre_gyp_bucket }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.node_pre_gyp_accessKeyId }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.node_pre_gyp_secretAccessKey }}
-        run: |
-          npm install -g @mapbox/node-pre-gyp aws-sdk
-          node lifecycleScripts/clean
-          node-pre-gyp package
-          node-pre-gyp publish
+      - name: Test packed installation
+        run: npm run test:package
+
+      - name: Prebuild
+        run: npm run prebuild
+
+      - name: Test Electron runtimes
+        if: matrix.node == 24
+        run: npm run test:electron
+
+      - name: Upload Prebuild Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuilds-macos-${{ matrix.node }}-${{ matrix.arch }}
+          path: prebuilds/
 
   windows-tests:
     name: Windows Tests
     strategy:
       matrix:
-        node: [20, 22, 24]
-        arch: [x86, x64, arm64]
-        exclude:
-        - node: 24
-          arch: x86
+        node: [24, 26]
+        arch: [x64, arm64]
       fail-fast: false
-    runs-on: windows-2022
+    runs-on: windows-latest
     steps:
       - name: Setup Environment
         run: |
-          git config --file C:\ProgramData\Git\config core.autocrlf input
           git config --system core.autocrlf input
           git config --global core.autocrlf input
           git config --global user.name "John Doe"
           git config --global user.email johndoe@example.com
 
       - uses: actions/checkout@v4
-
-      - name: Use Node.js
-        if: matrix.arch == 'x86'
-        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
-          architecture: x86
+          submodules: recursive
 
       - name: Use Node.js
         uses: actions/setup-node@v4
-        if: matrix.arch != 'x86'
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
 
       - name: Install
         env:
-          npm_config_arch: ${{ matrix.arch == 'x86' && 'ia32' || matrix.arch }}
-        run: npm install
+          npm_config_arch: ${{ matrix.arch }}
+        run: npm ci
 
       - name: Test
         # need arm64 runners or an emulator to run tests
@@ -175,22 +174,25 @@ jobs:
       # You're probably wondering why this isn't a single `run: |` step, it certainly is for *nix,
       # but it's not, because the CI runner for windows doesn't wait for each step as listed here
       # and it treats each additional step past the first as an orphaned process.
-      - name: Deploy (Dependencies)
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: npm install -g @mapbox/node-pre-gyp aws-sdk
+      - name: Test packed installation
+        if: matrix.arch != 'arm64'
+        run: npm run test:package
 
-      - name: Deploy (Clean)
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: node lifecycleScripts\clean
-
-      - name: Deploy (Package)
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: node-pre-gyp package --target_arch=${{ matrix.arch }}
-
-      - name: Deploy (Publish)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Prebuild
         env:
-          node_pre_gyp_bucket: ${{ secrets.node_pre_gyp_bucket }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.node_pre_gyp_accessKeyId }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.node_pre_gyp_secretAccessKey }}
-        run: node-pre-gyp publish --target_arch=${{ matrix.arch }}
+          npm_config_arch: ${{ matrix.arch }}
+          PREBUILD_ARCH: ${{ matrix.arch }}
+        run: npm run prebuild
+
+      - name: Verify Windows prebuild architecture
+        run: node utils/verifyWindowsPrebuilds.js ${{ matrix.arch }}
+
+      - name: Test Electron runtimes
+        if: matrix.node == 24 && matrix.arch == 'x64'
+        run: npm run test:electron
+
+      - name: Upload Prebuild Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuilds-windows-${{ matrix.node }}-${{ matrix.arch }}
+          path: prebuilds/

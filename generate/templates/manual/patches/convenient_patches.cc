@@ -35,7 +35,7 @@ NAN_METHOD(GitPatch::ConvenientFromDiff) {
 
   worker->Reference<GitDiff>("diff", info[0]);
 
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   nodegitContext->QueueWorker(worker);
   return;
 }
@@ -48,7 +48,6 @@ nodegit::LockMaster GitPatch::ConvenientFromDiffWorker::AcquireLocks() {
 void GitPatch::ConvenientFromDiffWorker::Execute() {
   git_error_clear();
 
-  std::vector<git_patch *> patchesToBeFreed;
 
   if (baton->indexes.size() > 0) {
     for (int idx : baton->indexes) {
@@ -56,12 +55,6 @@ void GitPatch::ConvenientFromDiffWorker::Execute() {
       int result = git_patch_from_diff(&nextPatch, baton->diff, idx);
 
       if (result) {
-        while (!patchesToBeFreed.empty())
-        {
-          git_patch_free(patchesToBeFreed.back());
-          patchesToBeFreed.pop_back();
-        }
-
         while (!baton->out->empty()) {
           PatchDataFree(baton->out->back());
           baton->out->pop_back();
@@ -81,7 +74,6 @@ void GitPatch::ConvenientFromDiffWorker::Execute() {
 
       if (nextPatch != NULL) {
         baton->out->push_back(createFromRaw(nextPatch));
-        patchesToBeFreed.push_back(nextPatch);
       }
     }
   } else {
@@ -90,12 +82,6 @@ void GitPatch::ConvenientFromDiffWorker::Execute() {
       int result = git_patch_from_diff(&nextPatch, baton->diff, i);
 
       if (result) {
-        while (!patchesToBeFreed.empty())
-        {
-          git_patch_free(patchesToBeFreed.back());
-          patchesToBeFreed.pop_back();
-        }
-
         while (!baton->out->empty()) {
           PatchDataFree(baton->out->back());
           baton->out->pop_back();
@@ -115,16 +101,10 @@ void GitPatch::ConvenientFromDiffWorker::Execute() {
 
       if (nextPatch != NULL) {
         baton->out->push_back(createFromRaw(nextPatch));
-        patchesToBeFreed.push_back(nextPatch);
       }
     }
   }
 
-  while (!patchesToBeFreed.empty())
-  {
-    git_patch_free(patchesToBeFreed.back());
-    patchesToBeFreed.pop_back();
-  }
 }
 
 void GitPatch::ConvenientFromDiffWorker::HandleErrorCallback() {

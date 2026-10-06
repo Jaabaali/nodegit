@@ -26,7 +26,7 @@ NAN_METHOD(GitClone::Clone) {
   }
 
   CloneBaton *baton = new CloneBaton();
-  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(info.Data().As<External>()->Value());
+  nodegit::Context *nodegitContext = reinterpret_cast<nodegit::Context *>(nodegit::ExternalValue(info.Data().As<External>()));
   std::map<std::string, std::shared_ptr<nodegit::CleanupHandle>> cleanupHandles;
 
   if (info[2]->IsNull() || info[2]->IsUndefined()) {

@@ -74,14 +74,13 @@ OpenSSL, and other system library versions on the chosen baseline.
 
 ## TypeScript
 
-This package does not yet bundle TypeScript declarations. Studio currently uses
-`@types/nodegit@0.28.9`, local declaration patches, and the `nodegit` import name.
-Installing this fork under an npm alias preserves that setup; importing the scoped
-package directly requires declarations for that module name.
+TypeScript declarations are bundled with the package, including installations
+aliased as `nodegit`. Consumers do not need `@types/nodegit` or Studio's previous
+NodeGit typing patches. Constants are described as runtime objects rather than
+ambient const enums, and work with `isolatedModules`.
 
-The binding generator emits C++ and JavaScript, not `.d.ts` files. TypeScript
-declarations must be checked separately against both the generated native API and
-the handwritten JavaScript convenience API.
+See [TYPINGS.md](TYPINGS.md) for generated binding declarations, inline JSDoc,
+manual native contracts, checks, and the remaining upstream declaration baseline.
 
 ## Building and releasing
 

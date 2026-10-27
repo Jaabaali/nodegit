@@ -1,0 +1,88 @@
+{
+  "nativeMethods": {
+    "Patch": "*",
+    "Merge": [
+      "analysis",
+      "analysisForRef",
+      "base",
+      "bases",
+      "commits",
+      "merge",
+      "trees"
+    ],
+    "Graph": [
+      "reachableFromAny"
+    ],
+    "Diff": [
+      "toBuf"
+    ]
+  },
+  "javascriptMethods": {
+    "Merge": {
+      "commits": "merge",
+      "merge": "merge"
+    },
+    "Graph": {
+      "reachableFromAny": "graph"
+    }
+  },
+  "constantAliases": {
+    "Attr.STATES": {
+      "UNSPECIFIED_T": "Attr.VALUE.UNSPECIFIED",
+      "TRUE_T": "Attr.VALUE.TRUE",
+      "FALSE_T": "Attr.VALUE.FALSE",
+      "VALUE_T": "Attr.VALUE.STRING"
+    },
+    "Cred.TYPE": "Credential.TYPE",
+    "Enums.CVAR": "Config.MAP",
+    "Index.CAP": "Index.CAPABILITY",
+    "Reference.NORMALIZE": {
+      "REF_FORMAT_NORMAL": "Reference.FORMAT.NORMAL",
+      "REF_FORMAT_ALLOW_ONELEVEL": "Reference.FORMAT.ALLOW_ONELEVEL",
+      "REF_FORMAT_REFSPEC_PATTERN": "Reference.FORMAT.REFSPEC_PATTERN",
+      "REF_FORMAT_REFSPEC_SHORTHAND": "Reference.FORMAT.REFSPEC_SHORTHAND"
+    },
+    "Remote.COMPLETION_TYPE": {
+      "COMPLETION_DOWNLOAD": "Remote.COMPLETION.DOWNLOAD",
+      "COMPLETION_INDEXING": "Remote.COMPLETION.INDEXING",
+      "COMPLETION_ERROR": "Remote.COMPLETION.ERROR"
+    },
+    "Revparse.MODE": "Revspec.TYPE",
+    "Enums.INDXENTRY_FLAG": {
+      "IDXENTRY_EXTENDED": "Index.ENTRY_FLAG.ENTRY_EXTENDED",
+      "IDXENTRY_VALID": "Index.ENTRY_FLAG.ENTRY_VALID"
+    },
+    "Enums.IDXENTRY_EXTENDED_FLAG": {
+      "IDXENTRY_INTENT_TO_ADD": "Index.ENTRY_EXTENDED_FLAG.ENTRY_INTENT_TO_ADD",
+      "IDXENTRY_SKIP_WORKTREE": "Index.ENTRY_EXTENDED_FLAG.ENTRY_SKIP_WORKTREE",
+      "S": "Index.ENTRY_EXTENDED_FLAG.S",
+      "IDXENTRY_UPTODATE": "Index.ENTRY_EXTENDED_FLAG.ENTRY_UPTODATE",
+      "IDXENTRY_EXTENDED2": 32768,
+      "IDXENTRY_UPDATE": 1,
+      "IDXENTRY_REMOVE": 2,
+      "IDXENTRY_ADDED": 8,
+      "IDXENTRY_HASHED": 16,
+      "IDXENTRY_UNHASHED": 32,
+      "IDXENTRY_WT_REMOVE": 64,
+      "IDXENTRY_CONFLICTED": 128,
+      "IDXENTRY_UNPACKED": 256,
+      "IDXENTRY_NEW_SKIP_WORKTREE": 512
+    }
+  },
+  "nativeFields": [
+    "DiffHunk"
+  ],
+  "manualSources": [
+    "generate/templates/manual/src/convenient_patch.cc",
+    "generate/templates/manual/patches/convenient_patches.cc"
+  ],
+  "constantMembers": {
+    "Object.TYPE": {
+      "BAD": "Object.TYPE.INVALID"
+    },
+    "Reference.TYPE": {
+      "OID": "Reference.TYPE.DIRECT",
+      "LISTALL": "Reference.TYPE.ALL"
+    }
+  }
+}

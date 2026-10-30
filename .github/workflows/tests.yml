@@ -8,6 +8,21 @@ on:
 name: Testing
 
 jobs:
+  types:
+    name: Type declarations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - run: npm run test:types
+      - name: Verify generated declarations are current
+        run: |
+          git diff --exit-code -- types/
+          test -z "$(git ls-files --others --exclude-standard -- types/)"
+
   linux-tests:
     name: "Linux Tests"
     strategy:

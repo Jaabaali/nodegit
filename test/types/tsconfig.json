@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "strict": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "skipLibCheck": false,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@jabali-ai/nodegit": ["../../types"],
+      "nodegit": ["../../types"]
+    }
+  },
+  "files": ["contracts.ts"]
+}

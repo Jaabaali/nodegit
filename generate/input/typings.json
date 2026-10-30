@@ -11,10 +11,15 @@
       "trees"
     ],
     "Graph": [
-      "reachableFromAny"
+      "reachableFromAny",
+      "aheadBehind"
     ],
     "Diff": [
       "toBuf"
+    ],
+    "Index": [
+      "hasConflicts",
+      "conflictGet"
     ]
   },
   "javascriptMethods": {

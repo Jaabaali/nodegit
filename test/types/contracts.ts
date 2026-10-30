@@ -52,3 +52,18 @@ async function mergeContracts(repo: Git.Repository, reference: Git.Reference, he
   await Git.Graph.reachableFromAny(repo, "HEAD", ["HEAD"], 1);
   return { analysis, preference, index, merged, reachable };
 }
+
+async function indexContracts(index: Git.Index, repo: Git.Repository, oid: Git.Oid) {
+  const conflicts: number = index.hasConflicts();
+  // @ts-expect-error The native method returns 0 or 1, not a JavaScript boolean.
+  const boolean: boolean = index.hasConflicts();
+  const entries = await index.conflictGet("file.txt");
+  const ours: Git.IndexEntry | null = entries.our_out;
+  const theirs: Git.IndexEntry | null = entries.their_out;
+  // @ts-expect-error Native output parameters are named our_out and their_out.
+  entries.ours_out;
+  const counts = await Git.Graph.aheadBehind(repo, oid, oid);
+  const ahead: number = counts.ahead;
+  const behind: number = counts.behind;
+  return { conflicts, ours, theirs, ahead, behind };
+}

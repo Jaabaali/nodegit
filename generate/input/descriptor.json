@@ -1845,14 +1845,17 @@
           "args": {
             "ancestor_out": {
               "isReturn": true,
+              "isNullable": true,
               "ownedBy": ["index"]
             },
             "our_out": {
               "isReturn": true,
+              "isNullable": true,
               "ownedBy": ["index"]
             },
             "their_out": {
               "isReturn": true,
+              "isNullable": true,
               "ownedBy": ["index"]
             }
           },

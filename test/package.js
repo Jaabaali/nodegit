@@ -50,6 +50,7 @@ try {
       const index = await repo.refreshIndex();
       await index.addByPath("example.txt");
       await index.write();
+      assert.strictEqual(index.hasConflicts(), 0);
       const tree = await repo.getTree(await index.writeTree());
       const entry = await tree.getEntry("example.txt");
       assert.strictEqual((await entry.getBlob()).toString(), "packaged install\\n");

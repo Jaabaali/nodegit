@@ -24,8 +24,13 @@ export declare class Merge {
   static trees(repo: Git.Repository, ancestor_tree: Git.Tree | null | undefined, our_tree: Git.Tree, their_tree: Git.Tree, opts?: Git.MergeOptions | null): Promise<Git.Index>;
 }
 export declare class Graph {
+  static aheadBehind(repo: Git.Repository, local: Git.Oid | string, upstream: Git.Oid | string): Promise<{ ahead: number; behind: number }>;
   static reachableFromAny(repo: Git.Repository, commit: Git.Oid | string, descendant_array: (Git.Oid | string)[], length: number): Promise<number>;
 }
 export declare class Diff {
   toBuf(format: number): Promise<string>;
+}
+export declare class Index {
+  conflictGet(path: string): Promise<{ ancestor_out: Git.IndexEntry | null; our_out: Git.IndexEntry | null; their_out: Git.IndexEntry | null }>;
+  hasConflicts(): number;
 }

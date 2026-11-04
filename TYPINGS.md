@@ -38,8 +38,10 @@ Obsolete upstream declarations without runtime counterparts are omitted.
 ## Initial coverage and expansion
 
 The first migration generates all binding constants, native Patch methods,
-Diff.toBuf, DiffHunk accessors, selected Merge methods, Graph reachability/counts,
-and Index conflict queries. Manual
+Diff.toBuf/getDelta, DiffHunk accessors, selected Merge methods, Graph queries,
+Index conflict/entry queries, Commit body/encoding, Repository workdir/namespace,
+and Reference targets. Synchronous pointer returns include `undefined` when the
+C API has no value; they do not return JavaScript `null`. Manual
 contracts cover Patch.convenientFromDiff and ConvenientPatch text/statistics.
 Merge and Graph convenience helpers are checked with strict `checkJs`; the rest
 of the JavaScript layer remains on the upstream declaration baseline.

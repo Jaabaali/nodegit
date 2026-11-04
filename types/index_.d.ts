@@ -21,8 +21,6 @@ export class Index {
     conflictCleanup(): number;
     conflictRemove(path: string): number;
     entryCount(): number;
-    getByIndex(n: number): IndexEntry;
-    getByPath(path: string, stage?: number): IndexEntry;
     owner(): Repository;
     path(): string;
     read(force: number): number;
@@ -45,6 +43,8 @@ export class Index {
         our_out: Git.IndexEntry | null;
         their_out: Git.IndexEntry | null;
     }>;
+    getByIndex(n: number): Git.IndexEntry | undefined;
+    getByPath(path: string, stage?: number | null): Git.IndexEntry | undefined;
     hasConflicts(): number;
 }
 export namespace Index {

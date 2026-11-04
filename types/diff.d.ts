@@ -35,7 +35,6 @@ export class Diff {
     static treeToWorkdir(repo: Repository, oldTree?: Tree, opts?: DiffOptions): Promise<Diff>;
     static treeToWorkdirWithIndex(repo: Repository, oldTree?: Tree, opts?: DiffOptions): Promise<Diff>;
     findSimilar(options?: DiffFindOptions): Promise<number>;
-    getDelta(idx: number): DiffDelta;
     getPerfdata(): Promise<DiffPerfdata>;
     numDeltas(): number;
     /**
@@ -47,6 +46,7 @@ export class Diff {
      * @returns - Structure containg the diff statistics.
      */
     getStats(): Promise<DiffStats>;
+    getDelta(idx: number): Git.DiffDelta | undefined;
     toBuf(format: number): Promise<string>;
 }
 export namespace Diff {

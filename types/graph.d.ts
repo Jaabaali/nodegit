@@ -3,10 +3,10 @@ import * as Git from "./index";
 import { Oid } from "./oid";
 import { Repository } from "./repository";
 export class Graph {
-    static descendantOf(repo: Repository, commit: Oid, ancestor: Oid): Promise<number>;
     static aheadBehind(repo: Git.Repository, local: Git.Oid | string, upstream: Git.Oid | string): Promise<{
         ahead: number;
         behind: number;
     }>;
+    static descendantOf(repo: Git.Repository, commit: Git.Oid | string, ancestor: Git.Oid | string): Promise<number>;
     static reachableFromAny: typeof import("./js/graph").reachableFromAny;
 }

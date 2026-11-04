@@ -67,3 +67,46 @@ async function indexContracts(index: Git.Index, repo: Git.Repository, oid: Git.O
   const behind: number = counts.behind;
   return { conflicts, ours, theirs, ahead, behind };
 }
+
+function optionalResultContracts(commit: Git.Commit, repo: Git.Repository,
+  reference: Git.Reference, index: Git.Index, diff: Git.Diff) {
+  // Null C pointers from synchronous bindings become undefined, not null.
+  // @ts-expect-error A summary-only commit has no body.
+  const body: string = commit.body();
+  // @ts-expect-error The encoding header may be absent.
+  const encoding: string = commit.messageEncoding();
+  // @ts-expect-error Bare repositories have no working directory.
+  const directory: string = repo.workdir();
+  // @ts-expect-error Repositories need not have an active namespace.
+  const namespace: string = repo.getNamespace();
+  // @ts-expect-error Direct references have no symbolic target.
+  const symbolic: string = reference.symbolicTarget();
+  // @ts-expect-error Symbolic references have no direct target.
+  const target: Git.Oid = reference.target();
+  // @ts-expect-error A peeled target may be absent.
+  const peeled: Git.Oid = reference.targetPeel();
+  // @ts-expect-error Index positions can be out of bounds.
+  const byIndex: Git.IndexEntry = index.getByIndex(0);
+  // @ts-expect-error Index paths can be absent.
+  const byPath: Git.IndexEntry = index.getByPath("missing");
+  // @ts-expect-error Diff positions can be out of bounds.
+  const delta: Git.DiffDelta = diff.getDelta(0);
+
+  const maybeDirectory: string | undefined = repo.workdir();
+  const maybeTarget: Git.Oid | undefined = reference.target();
+  const maybeEntry: Git.IndexEntry | undefined = index.getByPath("file.txt");
+  const maybeDelta: Git.DiffDelta | undefined = diff.getDelta(0);
+  if (maybeDirectory) maybeDirectory.toUpperCase();
+  if (maybeTarget) maybeTarget.tostrS();
+  if (maybeEntry) maybeEntry.path.toUpperCase();
+  if (maybeDelta) maybeDelta.status();
+}
+
+async function descendantContracts(repo: Git.Repository, oid: Git.Oid) {
+  const strings: number = await Git.Graph.descendantOf(repo, oid.tostrS(), oid.tostrS());
+  const objects: number = await Git.Graph.descendantOf(repo, oid, oid);
+  const mixed: number = await Git.Graph.descendantOf(repo, oid.tostrS(), oid);
+  // @ts-expect-error Native Oid inputs accept objects or strings, not numbers.
+  await Git.Graph.descendantOf(repo, 0, oid);
+  return { strings, objects, mixed };
+}

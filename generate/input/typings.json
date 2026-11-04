@@ -12,14 +12,31 @@
     ],
     "Graph": [
       "reachableFromAny",
-      "aheadBehind"
+      "aheadBehind",
+      "descendantOf"
     ],
     "Diff": [
-      "toBuf"
+      "toBuf",
+      "getDelta"
     ],
     "Index": [
       "hasConflicts",
-      "conflictGet"
+      "conflictGet",
+      "getByIndex",
+      "getByPath"
+    ],
+    "Commit": [
+      "body",
+      "messageEncoding"
+    ],
+    "Repository": [
+      "workdir",
+      "getNamespace"
+    ],
+    "Reference": [
+      "symbolicTarget",
+      "target",
+      "targetPeel"
     ]
   },
   "javascriptMethods": {

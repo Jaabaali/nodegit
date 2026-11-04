@@ -25,12 +25,29 @@ export declare class Merge {
 }
 export declare class Graph {
   static aheadBehind(repo: Git.Repository, local: Git.Oid | string, upstream: Git.Oid | string): Promise<{ ahead: number; behind: number }>;
+  static descendantOf(repo: Git.Repository, commit: Git.Oid | string, ancestor: Git.Oid | string): Promise<number>;
   static reachableFromAny(repo: Git.Repository, commit: Git.Oid | string, descendant_array: (Git.Oid | string)[], length: number): Promise<number>;
 }
 export declare class Diff {
+  getDelta(idx: number): Git.DiffDelta | undefined;
   toBuf(format: number): Promise<string>;
 }
 export declare class Index {
   conflictGet(path: string): Promise<{ ancestor_out: Git.IndexEntry | null; our_out: Git.IndexEntry | null; their_out: Git.IndexEntry | null }>;
+  getByIndex(n: number): Git.IndexEntry | undefined;
+  getByPath(path: string, stage?: number | null): Git.IndexEntry | undefined;
   hasConflicts(): number;
+}
+export declare class Commit {
+  body(): string | undefined;
+  messageEncoding(): string | undefined;
+}
+export declare class Repository {
+  getNamespace(): string | undefined;
+  workdir(): string | undefined;
+}
+export declare class Reference {
+  symbolicTarget(): string | undefined;
+  target(): Git.Oid | undefined;
+  targetPeel(): Git.Oid | undefined;
 }

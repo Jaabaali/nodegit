@@ -72,6 +72,7 @@ try {
       const patches = await Git.Patch.convenientFromDiff(diff, [0]);
       assert.strictEqual(typeof patches[0].toBuf(), "string");
       assert.strictEqual(patches[0].lineStats().total_additions, 1);
+      await require(${JSON.stringify(path.join(root, "test/utils/typingContracts"))})(Git, "typing-contracts");
     })().catch(error => { console.error(error); process.exitCode = 1; });
   `], consumer);
 } finally {

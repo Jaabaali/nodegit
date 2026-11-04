@@ -1,10 +1,20 @@
 var assert = require("assert");
 var fs = require("fs");
 var path = require("path");
+var os = require("os");
 var ts = require("typescript");
 var Git = require("../../");
 
 describe("Bundled declarations", function() {
+  it("matches absent native results and Oid-or-string graph inputs", async function() {
+    var directory = fs.mkdtempSync(path.join(os.tmpdir(), "nodegit-typing-contracts-"));
+    try {
+      await require("../utils/typingContracts")(Git, directory);
+    } finally {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   it("declares constant values that match the loaded native API and compatibility aliases", function() {
     var directory = path.join(__dirname, "../../types");
     var count = 0;

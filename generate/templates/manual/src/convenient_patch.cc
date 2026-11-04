@@ -303,6 +303,7 @@ void ConvenientPatch::HunksWorker::HandleOKCallback() {
   delete baton;
 }
 
+// @nodegit-type ConvenientPatch#lineStats(): { total_context: number; total_additions: number; total_deletions: number };
 NAN_METHOD(ConvenientPatch::LineStats) {
   Nan::EscapableHandleScope scope;
 
@@ -328,6 +329,7 @@ NAN_METHOD(ConvenientPatch::Size) {
   info.GetReturnValue().Set(to);
 }
 
+// @nodegit-type ConvenientPatch#toBuf(): string;
 NAN_METHOD(ConvenientPatch::ToBuf) {
   Nan::EscapableHandleScope scope;
 

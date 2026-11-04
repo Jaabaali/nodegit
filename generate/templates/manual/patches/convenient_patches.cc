@@ -1,3 +1,4 @@
+// @nodegit-type Patch.convenientFromDiff(diff: Git.Diff, indexes?: number[]): Promise<Git.ConvenientPatch[]>;
 NAN_METHOD(GitPatch::ConvenientFromDiff) {
   if (info.Length() == 0 || !info[0]->IsObject()) {
     return Nan::ThrowError("Diff diff is required.");

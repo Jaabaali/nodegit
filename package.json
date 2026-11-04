@@ -26,6 +26,7 @@
     }
   ],
   "main": "lib/nodegit.js",
+  "types": "types/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jaabaali/nodegit.git"
@@ -43,6 +44,7 @@
     "node": ">= 24"
   },
   "dependencies": {
+    "@types/node": "24.0.0",
     "fs-extra": "^7.0.0",
     "got": "^14.4.7",
     "json5": "^2.1.0",
@@ -72,6 +74,7 @@
     }
   },
   "devDependencies": {
+    "@types/nodegit": "0.28.9",
     "aws-sdk": "^2.1095.0",
     "clean-for-publish": "~1.0.2",
     "combyne": "~0.8.1",
@@ -81,6 +84,7 @@
     "mocha": "^11.4.0",
     "nyc": "^17.1.0",
     "prebuildify": "^6.0.1",
+    "typescript": "5.9.3",
     "walk": "^2.3.9"
   },
   "scripts": {
@@ -104,8 +108,10 @@
     "recompileDebug": "node-gyp configure --debug build",
     "test": "npm run lint && node --expose-gc test",
     "xcodeDebug": "node-gyp configure -- -f xcode",
-    "prepack": "node generate",
+    "prepack": "node generate && npm run generate:types",
     "test:package": "node test/package.js",
-    "test:electron": "node test/electron.js"
+    "test:electron": "node test/electron.js",
+    "generate:types": "node generate/scripts/generateTypes",
+    "test:types": "npm run generate:types && tsc -p test/types/tsconfig.json"
   }
 }
